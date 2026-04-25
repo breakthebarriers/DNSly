@@ -1,0 +1,17 @@
+{
+  "bindAddr": ":8080",
+  "apiKey": "change-me-long-random-token",
+  "publicServerHost": "vpn.example.com",
+  "publicServerPort": 53,
+  "tunnelDomain": "t.example.com",
+  "defaultDns": "1.1.1.1",
+  "defaultSshHost": "vpn.example.com",
+  "defaultSshPort": 22,
+  "defaultSocksHost": "127.0.0.1",
+  "defaultSocksPort": 1080,
+  "defaultMtu": 1400,
+  "defaultTimeoutSec": 60,
+  "defaultTunnelType": "vayDnsSsh",
+  "iosBundleId": "com.example.dnslyApp",
+  "iosProviderBundle": "com.example.dnslyApp.PacketTunnel"
+}

@@ -1,0 +1,40 @@
+name: Build iOS Framework
+
+on:
+  push:
+    branches: [main, init]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-xcframework:
+    name: Build Tunnel.xcframework
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Install gomobile
+        working-directory: go
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go install golang.org/x/mobile/cmd/gobind@latest
+          gomobile init
+
+      - name: Build Tunnel.xcframework
+        working-directory: go
+        run: make ios
+
+      - name: Upload xcframework artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tunnel.xcframework
+          path: ios/Frameworks/Tunnel.xcframework
+          retention-days: 7

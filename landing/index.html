@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DNSly — Anti-Censorship iOS Client</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0E1117;
+      --surface:   #161B22;
+      --surface2:  #1C2128;
+      --border:    rgba(255,255,255,0.07);
+      --blue:      #58A6FF;
+      --blue-dim:  #1F6FEB;
+      --blue-dark: #0D419D;
+      --green:     #3FB950;
+      --amber:     #D29922;
+      --red:       #F85149;
+      --text:      #E6EDF3;
+      --text-muted:#8B949E;
+      --text-dim:  #6E7681;
+      --r:         16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(14,17,23,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-logo img {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue-dim), var(--blue));
+      color: #fff;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    /* ─── HERO ────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 110px 24px 80px;
+      text-align: center;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(31,111,235,.35) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 30%, rgba(88,166,255,.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(88,166,255,.12);
+      border: 1px solid rgba(88,166,255,.3);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .hero-badge span { font-size: 14px; }
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 68px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 22px;
+    }
+    .hero h1 .highlight {
+      background: linear-gradient(90deg, var(--blue-dim), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      max-width: 540px;
+      margin: 0 auto 40px;
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-lg { padding: 13px 26px; font-size: 15px; border-radius: 12px; }
+
+    /* ─── PHONE MOCKUP ────────────────────────────────────── */
+    .mockup-section {
+      display: flex;
+      justify-content: center;
+      padding: 60px 24px 20px;
+      perspective: 1200px;
+    }
+    .phone-wrap {
+      position: relative;
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: rotateY(-4deg) rotateX(3deg) translateY(0); }
+      50%      { transform: rotateY(4deg)  rotateX(-2deg) translateY(-18px); }
+    }
+    .phone {
+      width: 270px;
+      background: #1a1a1f;
+      border-radius: 46px;
+      border: 2px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,.5),
+        0 40px 80px rgba(0,0,0,.7),
+        0 0 60px rgba(31,111,235,.2),
+        inset 0 1px 0 rgba(255,255,255,.08);
+      overflow: hidden;
+      padding: 14px 6px 10px;
+    }
+    .phone-notch {
+      width: 90px;
+      height: 24px;
+      background: #111;
+      border-radius: 0 0 18px 18px;
+      margin: 0 auto 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .notch-cam {
+      width: 10px;
+      height: 10px;
+      background: #222;
+      border-radius: 50%;
+      border: 1.5px solid #333;
+    }
+    .phone-screen {
+      background: #0E1117;
+      border-radius: 32px;
+      overflow: hidden;
+      padding: 14px 12px;
+    }
+    .phone-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .status-icons { display: flex; gap: 4px; align-items: center; }
+    .phone-title {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+
+    /* connect button */
+    .phone-connect {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .connect-ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3FB950, #2ea043);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px rgba(63,185,80,.45), 0 0 60px rgba(63,185,80,.15);
+      flex-direction: column;
+      gap: 3px;
+    }
+    .connect-icon { font-size: 28px; }
+    .connect-label { font-size: 10px; font-weight: 700; color: #fff; }
+
+    /* status card */
+    .phone-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .phone-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .dot-green { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+    .status-connected { color: var(--green); font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 5px; }
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      padding: 6px 4px;
+      text-align: center;
+    }
+    .stat-val { font-size: 11px; font-weight: 700; color: var(--blue); }
+    .stat-key { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+
+    /* profile card */
+    .profile-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .profile-name { font-size: 12px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 600;
+      background: rgba(88,166,255,.18);
+      color: var(--blue);
+    }
+    .badge-green { background: rgba(63,185,80,.18); color: var(--green); }
+
+    /* tab bar */
+    .phone-tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 9px; color: var(--text-dim); }
+    .tab.active { color: var(--blue); }
+    .tab-icon { font-size: 16px; }
+
+    /* glow blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+    }
+    .blob-1 {
+      width: 340px; height: 340px;
+      background: rgba(31,111,235,.18);
+      top: -60px; left: -80px;
+    }
+    .blob-2 {
+      width: 240px; height: 240px;
+      background: rgba(63,185,80,.10);
+      bottom: -40px; right: -60px;
+    }
+
+    /* ─── SECTION COMMONS ─────────────────────────────────── */
+    section { padding: 80px 24px; }
+    .section-label {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* ─── FEATURES ────────────────────────────────────────── */
+    #features { background: var(--surface); }
+    .features-header { text-align: center; margin-bottom: 56px; }
+    .features-header .section-sub { margin: 0 auto; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px;
+      transition: border-color .25s, transform .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(88,166,255,.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .feature-card:hover {
+      border-color: rgba(88,166,255,.3);
+      transform: translateY(-3px);
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(31,111,235,.25), rgba(88,166,255,.15));
+      border: 1px solid rgba(88,166,255,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+    .feature-icon.green {
+      background: linear-gradient(135deg, rgba(63,185,80,.2), rgba(63,185,80,.08));
+      border-color: rgba(63,185,80,.2);
+    }
+    .feature-icon.amber {
+      background: linear-gradient(135deg, rgba(210,153,34,.2), rgba(210,153,34,.08));
+      border-color: rgba(210,153,34,.2);
+    }
+    .feature-icon.red {
+      background: linear-gradient(135deg, rgba(248,81,73,.2), rgba(248,81,73,.08));
+      border-color: rgba(248,81,73,.2);
+    }
+    .feature-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .tag {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+    }
+
+    /* ─── HOW IT WORKS ────────────────────────────────────── */
+    #how {
+      background: var(--bg);
+    }
+    .how-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    @media (max-width: 720px) { .how-inner { grid-template-columns: 1fr; } }
+    .steps { display: flex; flex-direction: column; gap: 28px; }
+    .step {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-dim), var(--blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(31,111,235,.4);
+    }
+    .step-body {}
+    .step-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .step-desc  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+    /* small phone for how-it-works */
+    .how-visual {
+      display: flex;
+      justify-content: center;
+    }
+    .mini-screen {
+      width: 240px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 40px rgba(88,166,255,.1);
+    }
+    .mini-header {
+      background: linear-gradient(180deg, rgba(31,111,235,.2) 0%, transparent 100%);
+      padding: 14px 14px 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+    .mini-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .mini-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .mini-row-icon { font-size: 16px; }
+    .mini-row-text { font-size: 11px; }
+    .mini-row-text strong { display: block; font-size: 12px; margin-bottom: 1px; }
+    .mini-row-text span { color: var(--text-muted); font-size: 10px; }
+
+    /* ─── TUNNEL TYPES ────────────────────────────────────── */
+    #tunnel { background: var(--surface); }
+    .tunnel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 40px;
+    }
+    .tunnel-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px 18px;
+      text-align: center;
+      transition: border-color .2s, transform .2s;
+    }
+    .tunnel-card:hover {
+      border-color: rgba(88,166,255,.35);
+      transform: translateY(-2px);
+    }
+    .tunnel-emoji { font-size: 30px; margin-bottom: 10px; }
+    .tunnel-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .tunnel-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── SECURITY ────────────────────────────────────────── */
+    #security { background: var(--bg); }
+    .security-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    @media (max-width: 720px) { .security-inner { grid-template-columns: 1fr; } }
+    .security-list { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+    .security-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .security-check {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(63,185,80,.15);
+      border: 1px solid rgba(63,185,80,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-top: 1px;
+    }
+    .security-item-text strong { display: block; font-size: 14px; font-weight: 700; }
+    .security-item-text span { font-size: 13px; color: var(--text-muted); }
+    .terminal {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+    }
+    .terminal-bar {
+      background: var(--surface2);
+      padding: 10px 14px;
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-body { padding: 18px; line-height: 2; color: var(--text-muted); }
+    .terminal-body .t-g { color: var(--green); }
+    .terminal-body .t-b { color: var(--blue); }
+    .terminal-body .t-a { color: var(--amber); }
+    .terminal-body .t-d { color: var(--text-dim); }
+
+    /* ─── STATS BANNER ────────────────────────────────────── */
+    .stats-banner {
+      background: linear-gradient(135deg, rgba(31,111,235,.15) 0%, rgba(88,166,255,.08) 100%);
+      border-top: 1px solid rgba(88,166,255,.15);
+      border-bottom: 1px solid rgba(88,166,255,.15);
+      padding: 48px 24px;
+    }
+    .stats-banner-grid {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    @media (max-width: 640px) {
+      .stats-banner-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-num {
+      font-size: 38px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--blue-dim), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label { font-size: 13px; color: var(--text-muted); }
+
+    /* ─── CTA ─────────────────────────────────────────────── */
+    #download {
+      text-align: center;
+      padding: 100px 24px;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+    #download::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(31,111,235,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    #download .app-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+      margin: 0 auto 28px;
+      display: block;
+      box-shadow: 0 16px 48px rgba(0,0,0,.5), 0 0 40px rgba(88,166,255,.2);
+    }
+    #download h2 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: 16px;
+    }
+    #download p {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 420px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      background: var(--text);
+      color: var(--bg);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      transition: opacity .2s, transform .15s;
+    }
+    .store-btn:hover { opacity: .9; transform: translateY(-2px); }
+    .store-btn svg { flex-shrink: 0; }
+    .store-btn-text { text-align: left; }
+    .store-btn-text small { display: block; font-size: 11px; font-weight: 400; opacity: .7; }
+
+    /* ─── FOOTER ──────────────────────────────────────────── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .footer-logo img { width: 24px; height: 24px; border-radius: 5px; }
+    .footer-copy { font-size: 13px; color: var(--text-dim); }
+    .footer-social { display: flex; align-items: center; gap: 12px; }
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      transition: color .2s, border-color .2s, background .2s;
+      text-decoration: none;
+    }
+    .social-link:hover { color: var(--text); border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.05); }
+
+    /* ─── DONATE ──────────────────────────────────────────── */
+    .btn-amber {
+      background: linear-gradient(135deg, #9a6500, var(--amber));
+      color: #fff;
+    }
+    #donate {
+      padding: 100px 24px;
+      text-align: center;
+    }
+    .donate-card {
+      max-width: 560px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 48px 40px;
+    }
+    .donate-card h2 { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
+    .donate-card > p { color: var(--text-muted); margin-bottom: 36px; font-size: 15px; line-height: 1.7; }
+    .wallet-type-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-align: left;
+    }
+    .wallet-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .wallet-addr {
+      flex: 1;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--blue);
+      word-break: break-all;
+      text-align: left;
+      user-select: all;
+    }
+    .copy-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: rgba(255,255,255,.2); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero { padding: 80px 20px 60px; }
+      .donate-card { padding: 32px 20px; }
+    }
+
+    /* ─── LUCIDE ICONS ───────────────────────────────────── */
+    i[data-lucide] { display: inline-flex; vertical-align: middle; }
+    .connect-ring { color: #fff; }
+    .connect-icon i[data-lucide] { width: 32px; height: 32px; }
+    .tab-icon i[data-lucide] { width: 18px; height: 18px; }
+    .feature-icon i[data-lucide] { width: 24px; height: 24px; }
+    .mini-header i[data-lucide] { width: 13px; height: 13px; }
+    .mini-row-icon i[data-lucide] { width: 18px; height: 18px; }
+    .tunnel-emoji i[data-lucide] { width: 32px; height: 32px; }
+    .security-check i[data-lucide] { width: 13px; height: 13px; stroke: var(--green); stroke-width: 2.5; }
+    .hero-badge i[data-lucide] { width: 15px; height: 15px; }
+    .profile-name i[data-lucide] { width: 14px; height: 14px; }
+  </style>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <img src="LOGO DNSLY.png" alt="DNSly"/>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#tunnel">Tunnel types</a></li>
+      <li><a href="#security">Security</a></li>
+      <!-- <li><a href="#donate">Donate</a></li> -->
+      <!-- <li><a href="#download">Download</a></li> -->
+    </ul>
+    <div><span style="padding-right: 8px;">want to help us?!</span><a href="#donate" class="btn btn-amber">Donate</a></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <i data-lucide="shield"></i> iOS · Privacy · Open Internet
+  </div>
+  <h1>Browse Free.<br><span class="highlight">No Restrictions.</span></h1>
+  <p>DNSly is the powerful anti-censorship client for iPhone. Manage encrypted DNS profiles, scan network records, and tunnel through any restriction — with one tap.</p>
+  <div class="hero-cta">
+    <!-- <a href="#download" class="btn btn-primary btn-lg">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="currentColor"/></svg>
+      Download for iOS
+    </a> -->
+    <a href="#features" class="btn btn-ghost btn-lg">See Features</a>
+  </div>
+</section>
+
+<!-- PHONE MOCKUP -->
+<div class="mockup-section">
+  <div class="phone-wrap">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="phone">
+      <div class="phone-notch">
+        <div class="notch-cam"></div>
+      </div>
+      <div class="phone-screen">
+        <div class="phone-status">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="#E6EDF3"><rect x="0" y="3" width="2" height="7" rx="1"/><rect x="3" y="2" width="2" height="8" rx="1"/><rect x="6" y="1" width="2" height="9" rx="1"/><rect x="9" y="0" width="2" height="10" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#E6EDF3" stroke-width="2"><path d="M12 5C8 5 4.5 7 2 10l10 10 10-10c-2.5-3-6-5-10-5z"/><path d="M12 9c-1.5 0-3 .7-4 1.7l4 4 4-4A5 5 0 0012 9z"/></svg>
+            <svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="18" height="10" rx="3" stroke="#E6EDF3" stroke-width="1.5"/><rect x="2.5" y="2.5" width="13" height="7" rx="2" fill="#3FB950"/><rect x="20" y="4" width="3" height="4" rx="1.5" fill="#E6EDF3" opacity=".5"/></svg>
+          </div>
+        </div>
+        <div class="phone-title">DNSly</div>
+        <div class="phone-connect">
+          <div class="connect-ring">
+            <div class="connect-icon"><i data-lucide="zap"></i></div>
+            <div class="connect-label">Connected</div>
+          </div>
+        </div>
+        <div class="phone-card">
+          <div class="phone-card-row">
+            <span class="status-connected"><span class="dot-green"></span>Connected</span>
+            <span style="font-size:10px;color:#6E7681">2m 34s</span>
+          </div>
+          <div class="stats-row">
+            <div class="stat-box"><div class="stat-val">↓ 3.2</div><div class="stat-key">MB/s</div></div>
+            <div class="stat-box"><div class="stat-val">↑ 1.1</div><div class="stat-key">MB/s</div></div>
+            <div class="stat-box"><div class="stat-val">28ms</div><div class="stat-key">Latency</div></div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-name">
+            <i data-lucide="lock"></i> Encrypted Profile
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span class="badge">vayDns</span>
+            <span class="badge badge-green">DoH</span>
+            <span class="badge">:443</span>
+          </div>
+        </div>
+        <div class="phone-tabs">
+          <div class="tab active"><div class="tab-icon"><i data-lucide="home"></i></div>Home</div>
+          <div class="tab"><div class="tab-icon"><i data-lucide="clipboard-list"></i></div>Profiles</div>
+          <div class="tab"><div class="tab-icon"><i data-lucide="radio"></i></div>DNS Scan</div>
+          <div class="tab"><div class="tab-icon"><i data-lucide="settings"></i></div>Settings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BANNER -->
+<div class="stats-banner">
+  <div class="stats-banner-grid">
+    <div>
+      <div class="stat-num">5+</div>
+      <div class="stat-label">Tunnel Types</div>
+    </div>
+    <div>
+      <div class="stat-num">9</div>
+      <div class="stat-label">DNS Record Types</div>
+    </div>
+    <div>
+      <div class="stat-num">3</div>
+      <div class="stat-label">DNS Transports</div>
+    </div>
+    <div>
+      <div class="stat-num">AES</div>
+      <div class="stat-label">256-GCM Encryption</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything you need to<br>access the open internet</h2>
+      <p class="section-sub">A complete toolkit for privacy-conscious users in restricted regions. No compromise on speed or security.</p>
+    </div>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon"><i data-lucide="clipboard-list"></i></div>
+        <div class="feature-title">Smart Profile Management</div>
+        <div class="feature-desc">Create, edit, import, and export connection profiles. Each profile stores your full tunnel configuration — server, port, credentials, and cipher.</div>
+        <div class="feature-tags">
+          <span class="tag">Import via QR</span>
+          <span class="tag">slipnet:// links</span>
+          <span class="tag">Share export</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon green"><i data-lucide="radio"></i></div>
+        <div class="feature-title">DNS Scanner</div>
+        <div class="feature-desc">Built-in DNS record scanner lets you test connectivity and diagnose network restrictions across TXT, CNAME, A, AAAA, MX, NS, SRV, NULL, and CAA records.</div>
+        <div class="feature-tags">
+          <span class="tag">9 record types</span>
+          <span class="tag">Custom resolvers</span>
+          <span class="tag">Advanced filters</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon amber"><i data-lucide="link"></i></div>
+        <div class="feature-title">Multiple Tunnel Types</div>
+        <div class="feature-desc">Choose from VayDNS, SSH, SOCKS5, and powerful combinations like VayDNS+SSH or VayDNS+SOCKS5 to bypass any restriction.</div>
+        <div class="feature-tags">
+          <span class="tag">VayDNS</span>
+          <span class="tag">SSH</span>
+          <span class="tag">SOCKS5</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"><i data-lucide="globe"></i></div>
+        <div class="feature-title">Modern DNS Transports</div>
+        <div class="feature-desc">Go beyond plain DNS. Use DNS over HTTPS (DoH) or DNS over TLS (DoT) to encrypt your queries and prevent DNS-based censorship.</div>
+        <div class="feature-tags">
+          <span class="tag">DoH</span>
+          <span class="tag">DoT</span>
+          <span class="tag">Classic UDP/TCP</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon red"><i data-lucide="bar-chart-2"></i></div>
+        <div class="feature-title">Real-time Statistics</div>
+        <div class="feature-desc">Monitor your connection live — download speed, upload speed, and latency updated every second while you're connected.</div>
+        <div class="feature-tags">
+          <span class="tag">Download / Upload</span>
+          <span class="tag">Latency</span>
+          <span class="tag">Uptime</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon green"><i data-lucide="qr-code"></i></div>
+        <div class="feature-title">QR Code Import & Export</div>
+        <div class="feature-desc">Instantly share or receive profiles by scanning a QR code. Supports encrypted slipnet-enc:// payloads — safely transfer configs without exposing credentials.</div>
+        <div class="feature-tags">
+          <span class="tag">Scan to import</span>
+          <span class="tag">Generate QR</span>
+          <span class="tag">Encrypted share</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="how-inner">
+      <div>
+        <div class="section-label">How it works</div>
+        <h2 class="section-title">Up and running<br>in three steps</h2>
+        <p class="section-sub" style="margin-bottom:36px;">No technical knowledge required. DNSly handles all the complexity so you can focus on browsing freely.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <div class="step-title">Import or Create a Profile</div>
+              <div class="step-desc">Scan a QR code, paste a slipnet:// link, or manually configure a new connection profile with your server details.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <div class="step-title">Select Your Tunnel</div>
+              <div class="step-desc">Pick the tunnel type and DNS transport that matches your network environment — VayDNS, SSH, SOCKS5, DoH, or DoT.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <div class="step-title">Tap Connect</div>
+              <div class="step-desc">Hit the connect button and you're live. DNSly sets up the VPN profile and establishes your encrypted tunnel automatically.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="how-visual">
+        <div class="mini-screen">
+          <div class="mini-header"><i data-lucide="clipboard-list"></i> Profiles</div>
+          <div class="mini-body">
+            <div class="mini-row">
+              <div class="mini-row-icon"><i data-lucide="lock"></i></div>
+              <div class="mini-row-text">
+                <strong>Encrypted AWMdc+0L</strong>
+                <span>vayDns · DoH · :443</span>
+              </div>
+            </div>
+            <div class="mini-row">
+              <div class="mini-row-icon"><i data-lucide="zap"></i></div>
+              <div class="mini-row-text">
+                <strong>SSH Tunnel Pro</strong>
+                <span>SSH · Classic · :22</span>
+              </div>
+            </div>
+            <div class="mini-row">
+              <div class="mini-row-icon"><i data-lucide="globe"></i></div>
+              <div class="mini-row-text">
+                <strong>SOCKS5 Fast</strong>
+                <span>SOCKS5 · DoT · :1080</span>
+              </div>
+            </div>
+            <div style="background:rgba(88,166,255,.12);border:1px dashed rgba(88,166,255,.3);border-radius:10px;padding:12px;text-align:center;font-size:11px;color:#58A6FF;">
+              + Import via QR Code
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TUNNEL TYPES -->
+<section id="tunnel">
+  <div class="container">
+    <div class="section-label">Tunnel types</div>
+    <h2 class="section-title">Built for every network<br>restriction scenario</h2>
+    <div class="tunnel-grid">
+      <div class="tunnel-card">
+        <div class="tunnel-emoji"><i data-lucide="waves"></i></div>
+        <div class="tunnel-name">VayDNS</div>
+        <div class="tunnel-desc">Core DNS tunneling for lightweight censorship bypass</div>
+      </div>
+      <div class="tunnel-card">
+        <div class="tunnel-emoji"><i data-lucide="key"></i></div>
+        <div class="tunnel-name">SSH</div>
+        <div class="tunnel-desc">Encrypted shell tunnel for highly restricted networks</div>
+      </div>
+      <div class="tunnel-card">
+        <div class="tunnel-emoji"><i data-lucide="network"></i></div>
+        <div class="tunnel-name">SOCKS5</div>
+        <div class="tunnel-desc">Universal proxy protocol with full traffic routing</div>
+      </div>
+      <div class="tunnel-card">
+        <div class="tunnel-emoji"><i data-lucide="layers"></i></div>
+        <div class="tunnel-name">VayDNS + SSH</div>
+        <div class="tunnel-desc">Double-layer protection for maximum bypass power</div>
+      </div>
+      <div class="tunnel-card">
+        <div class="tunnel-emoji"><i data-lucide="zap"></i></div>
+        <div class="tunnel-name">VayDNS + SOCKS5</div>
+        <div class="tunnel-desc">Speed-optimized hybrid for heavy traffic scenarios</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="container">
+    <div class="security-inner">
+      <div>
+        <div class="section-label">Security</div>
+        <h2 class="section-title">Engineered for<br>high-risk environments</h2>
+        <p class="section-sub">Every connection is encrypted end-to-end. DNSly is built for users who need real privacy, not just a VPN label.</p>
+        <div class="security-list">
+          <div class="security-item">
+            <div class="security-check"><i data-lucide="check"></i></div>
+            <div class="security-item-text">
+              <strong>Kill Switch</strong>
+              <span>All traffic is blocked if the tunnel drops — no accidental exposure.</span>
+            </div>
+          </div>
+          <div class="security-item">
+            <div class="security-check"><i data-lucide="check"></i></div>
+            <div class="security-item-text">
+              <strong>AES-256-GCM & ChaCha20-Poly1305</strong>
+              <span>Industry-standard SSH ciphers protect your tunnel data.</span>
+            </div>
+          </div>
+          <div class="security-item">
+            <div class="security-check"><i data-lucide="check"></i></div>
+            <div class="security-item-text">
+              <strong>Encrypted Profile Storage</strong>
+              <span>Profiles are locked locally. Credentials never leave your device unencrypted.</span>
+            </div>
+          </div>
+          <div class="security-item">
+            <div class="security-check"><i data-lucide="check"></i></div>
+            <div class="security-item-text">
+              <strong>DNS-over-HTTPS / DNS-over-TLS</strong>
+              <span>Your DNS queries are encrypted so ISPs can't see what you're resolving.</span>
+            </div>
+          </div>
+          <div class="security-item">
+            <div class="security-check"><i data-lucide="check"></i></div>
+            <div class="security-item-text">
+              <strong>Auto Connect</strong>
+              <span>Reconnect on app launch so you're never accidentally unprotected.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot" style="background:#F85149"></div>
+            <div class="terminal-dot" style="background:#D29922"></div>
+            <div class="terminal-dot" style="background:#3FB950"></div>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-d">$</span> <span class="t-b">dnsly</span> connect --profile encrypted-awm</div>
+            <div><span class="t-g">✓</span> Profile loaded</div>
+            <div><span class="t-g">✓</span> Cipher: AES-256-GCM</div>
+            <div><span class="t-g">✓</span> DNS: DoH → https://dns.example</div>
+            <div><span class="t-g">✓</span> Tunnel: VayDNS+SSH :443</div>
+            <div><span class="t-g">✓</span> Kill switch: enabled</div>
+            <div>&nbsp;</div>
+            <div><span class="t-g">● Connected</span> <span class="t-d">— 28ms latency</span></div>
+            <div><span class="t-d">  ↓ 3.2 MB/s  ↑ 1.1 MB/s</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD CTA -->
+<!-- <section id="download">
+  <img class="app-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAIAAADwf7zUAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QA/wD/AP+gvaeTAAApy0lEQVR42u3dW2xk500/8N+fc8ZOvLtemx3Y0LIICVShUkJC6iNB+8ALz7whhX3kvVxUoVJAKIBoaUu3AUKTda5NshFFpQ8I2m64E0oJzW1z22yxU0pCpRVh4yXn7OFhbmcu9nrsOef/+Siq0tza3TOj9vs7PvOfWBRFAAAA0oC5BAAAsAEAAwDABgAA" alt="DNSly icon" />
+  <div class="section-label">Download</div>
+  <h2>Start browsing freely<br>today</h2>
+  <p>Available for iPhone. Lightweight, fast, and built for users who won't compromise on access.</p>
+  <a href="#" class="store-btn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04l-.08.27zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+    <div class="store-btn-text">
+      <small>Download on the</small>
+      App Store
+    </div>
+  </a>
+</section> -->
+
+<!-- DONATE -->
+<section id="donate">
+  <div class="donate-card">
+    <div class="section-label">Support the Project</div>
+    <h2>Help Keep DNSly Free</h2>
+    <p>DNSly is built by a small, independent, self-funded team with one goal: making open internet access available to everyone.</p>
+    <p>We run the servers, build the tools, and are developing an iOS app — all with our own resources. If you believe in a free and open internet, your support helps us keep going and reach more people.</p>
+    <p class="wallet-type-label">Bitcoin (BTC)</p>
+    <div class="wallet-box">
+      <img src="2026-04-23 13.45.39.jpg" width="128px"/>
+      <span class="wallet-addr" id="walletAddr">bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx</span>
+      <button class="copy-btn" onclick="copyWallet()">Copy</button>
+    </div>
+    <p class="wallet-type-label" style="padding-top: 64px;">Tether (TRC20)</p>
+    <div class="wallet-box">
+      <img src="2026-04-23 13.45.58.jpg" width="128px"/>
+      <span class="wallet-addr" id="walletAddr">TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW</span>
+      <button class="copy-btn" onclick="copyWallet()">Copy</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a class="footer-logo" href="#">
+      <img src="LOGO DNSLY.png" alt="DNSly" />
+    </a>
+    <div class="footer-social">
+      <!-- X / Twitter -->
+      <a href="https://x.com/breakthebariers" class="social-link" target="_blank" rel="noopener" aria-label="X (Twitter)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.258 5.63 5.906-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </a>
+      <!-- Telegram -->
+      <a href="https://t.me/Break_The_Barriers" class="social-link" target="_blank" rel="noopener" aria-label="Telegram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+      </a>
+    </div>
+    <div class="footer-copy">© 2026 Break The Barriers Team. All rights reserved.</div>
+  </div>
+  <div style="text-align: center; font-size: 13px; color: var(--text-dim)">made with love &lt;3</div>
+</footer>
+
+<script>
+lucide.createIcons();
+
+function copyWallet() {
+  const addr = document.getElementById('walletAddr').textContent;
+  navigator.clipboard.writeText(addr).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+</body>
+</html>

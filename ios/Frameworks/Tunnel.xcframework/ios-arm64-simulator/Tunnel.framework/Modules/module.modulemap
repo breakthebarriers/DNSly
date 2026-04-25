@@ -1,0 +1,8 @@
+framework module "Tunnel" {
+	header "ref.h"
+    header "Tunnel.objc.h"
+    header "Universe.objc.h"
+    header "Tunnel.h"
+
+    export *
+}
