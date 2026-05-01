@@ -108,6 +108,12 @@ class Profile {
   final int? mtu;
   final int? timeout;
 
+  final int queryRateLimit;
+  final int? idleTimeout;
+  final int? udpTimeout;
+  final int? maxLabels;
+  final int clientIdSize;
+
   final bool isLocked;
   final String? encryptedUri;
 
@@ -136,6 +142,11 @@ class Profile {
     this.compression = false,
     this.mtu,
     this.timeout,
+    this.queryRateLimit = 0,
+    this.idleTimeout,
+    this.udpTimeout,
+    this.maxLabels,
+    this.clientIdSize = 2,
     this.isLocked = false,
     this.encryptedUri,
   });
@@ -165,6 +176,11 @@ class Profile {
     bool? compression,
     int? mtu,
     int? timeout,
+    int? queryRateLimit,
+    int? idleTimeout,
+    int? udpTimeout,
+    int? maxLabels,
+    int? clientIdSize,
     bool? isLocked,
     String? encryptedUri,
   }) {
@@ -193,6 +209,11 @@ class Profile {
       compression: compression ?? this.compression,
       mtu: mtu ?? this.mtu,
       timeout: timeout ?? this.timeout,
+      queryRateLimit: queryRateLimit ?? this.queryRateLimit,
+      idleTimeout: idleTimeout ?? this.idleTimeout,
+      udpTimeout: udpTimeout ?? this.udpTimeout,
+      maxLabels: maxLabels ?? this.maxLabels,
+      clientIdSize: clientIdSize ?? this.clientIdSize,
       isLocked: isLocked ?? this.isLocked,
       encryptedUri: encryptedUri ?? this.encryptedUri,
     );
@@ -223,6 +244,11 @@ class Profile {
     'compression': compression,
     'mtu': mtu,
     'timeout': timeout,
+    'queryRateLimit': queryRateLimit,
+    'idleTimeout': idleTimeout,
+    'udpTimeout': udpTimeout,
+    'maxLabels': maxLabels,
+    'clientIdSize': clientIdSize,
     'isLocked': isLocked,
     'encryptedUri': encryptedUri,
   };
@@ -275,6 +301,11 @@ class Profile {
       compression: json['compression'] as bool? ?? false,
       mtu: json['mtu'] as int?,
       timeout: json['timeout'] as int?,
+      queryRateLimit: json['queryRateLimit'] as int? ?? 0,
+      idleTimeout: json['idleTimeout'] as int?,
+      udpTimeout: json['udpTimeout'] as int?,
+      maxLabels: json['maxLabels'] as int?,
+      clientIdSize: json['clientIdSize'] as int? ?? 2,
       isLocked: json['isLocked'] as bool? ?? false,
       encryptedUri: json['encryptedUri'] as String?,
     );
@@ -299,6 +330,11 @@ class Profile {
       'compression': compression ? '1' : '0',
       'mtu': mtu?.toString(),
       'timeout': timeout?.toString(),
+      'queryRateLimit': queryRateLimit != 0 ? queryRateLimit.toString() : null,
+      'idleTimeout': idleTimeout?.toString(),
+      'udpTimeout': udpTimeout?.toString(),
+      'maxLabels': maxLabels?.toString(),
+      'clientIdSize': clientIdSize != 2 ? clientIdSize.toString() : null,
     }..removeWhere((_, v) => v == null);
 
     final query = params.entries
@@ -569,6 +605,11 @@ class Profile {
       compression: qp['compression'] == '1',
       mtu: qp['mtu'] != null ? int.tryParse(qp['mtu']!) : null,
       timeout: qp['timeout'] != null ? int.tryParse(qp['timeout']!) : null,
+      queryRateLimit: qp['queryRateLimit'] != null ? int.tryParse(qp['queryRateLimit']!) ?? 0 : 0,
+      idleTimeout: qp['idleTimeout'] != null ? int.tryParse(qp['idleTimeout']!) : null,
+      udpTimeout: qp['udpTimeout'] != null ? int.tryParse(qp['udpTimeout']!) : null,
+      maxLabels: qp['maxLabels'] != null ? int.tryParse(qp['maxLabels']!) : null,
+      clientIdSize: qp['clientIdSize'] != null ? int.tryParse(qp['clientIdSize']!) ?? 2 : 2,
       isLocked: false,
     );
   }

@@ -51,8 +51,14 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
   late final TextEditingController _mtuCtrl;
   late final TextEditingController _timeoutCtrl;
   late final TextEditingController _queryLengthCtrl;
+  late final TextEditingController _queryRateLimitCtrl;
+  late final TextEditingController _idleTimeoutCtrl;
+  late final TextEditingController _udpTimeoutCtrl;
+  late final TextEditingController _maxLabelsCtrl;
+  late final TextEditingController _clientIdSizeCtrl;
 
   // ─── State ───
+  bool _advancedExpanded = false;
   late TunnelType _tunnelType;
   late DnsTransport _dnsTransport;
   late SshCipher _sshCipher;
@@ -87,6 +93,11 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     _mtuCtrl = TextEditingController(text: '${p?.mtu ?? 1400}');
     _timeoutCtrl = TextEditingController(text: '${p?.timeout ?? 30}');
     _queryLengthCtrl = TextEditingController(text: '${p?.queryLength ?? 101}');
+    _queryRateLimitCtrl = TextEditingController(text: '${p?.queryRateLimit ?? 0}');
+    _idleTimeoutCtrl = TextEditingController(text: p?.idleTimeout != null ? '${p!.idleTimeout}' : '');
+    _udpTimeoutCtrl = TextEditingController(text: p?.udpTimeout != null ? '${p!.udpTimeout}' : '');
+    _maxLabelsCtrl = TextEditingController(text: p?.maxLabels != null ? '${p!.maxLabels}' : '');
+    _clientIdSizeCtrl = TextEditingController(text: '${p?.clientIdSize ?? 2}');
 
     _tunnelType = p?.tunnelType ?? TunnelType.vayDns;
     _dnsTransport = p?.dnsTransport ?? DnsTransport.doh;
@@ -118,6 +129,11 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     _mtuCtrl.dispose();
     _timeoutCtrl.dispose();
     _queryLengthCtrl.dispose();
+    _queryRateLimitCtrl.dispose();
+    _idleTimeoutCtrl.dispose();
+    _udpTimeoutCtrl.dispose();
+    _maxLabelsCtrl.dispose();
+    _clientIdSizeCtrl.dispose();
     _unlockPasswordCtrl.dispose();
     super.dispose();
   }
@@ -400,36 +416,141 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                 const SizedBox(height: 28),
               ],
 
-              // ─── Advanced ───
-              const SectionHeader(title: 'Advanced'),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: FormFieldTile(
-                      label: 'MTU',
-                      controller: _mtuCtrl,
-                      placeholder: '1400',
-                      icon: CupertinoIcons.resize,
-                      keyboardType: TextInputType.number,
-                      enabled: !_isLocked,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FormFieldTile(
-                      label: 'Timeout (s)',
-                      controller: _timeoutCtrl,
-                      placeholder: '30',
-                      icon: CupertinoIcons.clock,
-                      keyboardType: TextInputType.number,
-                      enabled: !_isLocked,
-                    ),
-                  ),
-                ],
+              // ─── Query Rate Limit ───
+              const SizedBox(height: 4),
+              FormFieldTile(
+                label: 'Query Rate Limit (q/s)',
+                controller: _queryRateLimitCtrl,
+                placeholder: '0',
+                icon: CupertinoIcons.gauge,
+                keyboardType: TextInputType.number,
+                enabled: !_isLocked,
               ),
-              const SizedBox(height: 12),
-              _buildCompressionToggle(),
+              const SizedBox(height: 4),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  'Max DNS queries per second. 0 = unlimited.',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ─── Advanced (collapsible) ───
+              _buildAdvancedHeader(),
+              if (_advancedExpanded) ...[
+                const SizedBox(height: 8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: Text(
+                    'Only change these if you know what you\'re doing. 0 = use default.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FormFieldTile(
+                  label: 'Idle Timeout (seconds)',
+                  controller: _idleTimeoutCtrl,
+                  placeholder: '0',
+                  icon: CupertinoIcons.timer,
+                  keyboardType: TextInputType.number,
+                  enabled: !_isLocked,
+                ),
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'Session idle timeout.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FormFieldTile(
+                  label: 'Keepalive (seconds)',
+                  controller: _timeoutCtrl,
+                  placeholder: '0',
+                  icon: CupertinoIcons.heart,
+                  keyboardType: TextInputType.number,
+                  enabled: !_isLocked,
+                ),
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'Keepalive interval.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FormFieldTile(
+                  label: 'UDP Timeout (ms)',
+                  controller: _udpTimeoutCtrl,
+                  placeholder: '0',
+                  icon: CupertinoIcons.clock,
+                  keyboardType: TextInputType.number,
+                  enabled: !_isLocked,
+                ),
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'Per-query UDP response timeout. Default: ~500ms.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FormFieldTile(
+                  label: 'Max Labels',
+                  controller: _maxLabelsCtrl,
+                  placeholder: '0',
+                  icon: CupertinoIcons.tag,
+                  keyboardType: TextInputType.number,
+                  enabled: !_isLocked,
+                ),
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'Max data labels in query name. 0 = unlimited.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FormFieldTile(
+                  label: 'Client ID Size (bytes)',
+                  controller: _clientIdSizeCtrl,
+                  placeholder: '2',
+                  icon: CupertinoIcons.number_circle,
+                  keyboardType: TextInputType.number,
+                  enabled: !_isLocked,
+                ),
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'ClientID length on the wire. Must match server. Ignored when DNSTT compat is on (fixed at 8).',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FormFieldTile(
+                        label: 'MTU',
+                        controller: _mtuCtrl,
+                        placeholder: '1400',
+                        icon: CupertinoIcons.resize,
+                        keyboardType: TextInputType.number,
+                        enabled: !_isLocked,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildCompressionToggle(),
+              ],
             ],
           ),
         ),
@@ -634,10 +755,10 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
         children: [
           const Row(
             children: [
-              Icon(CupertinoIcons.shield, size: 14, color: AppColors.muted),
+              Icon(CupertinoIcons.shield, size: 14, color: AppColors.textSecondary),
               SizedBox(width: 6),
               Text('Cipher',
-                  style: TextStyle(fontSize: 12, color: AppColors.muted)),
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
             ],
           ),
           const SizedBox(height: 8),
@@ -659,7 +780,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                     ),
                   ),
                   const Icon(CupertinoIcons.chevron_down,
-                      size: 14, color: AppColors.muted),
+                      size: 14, color: AppColors.textSecondary),
                 ],
               ),
             ),
@@ -702,6 +823,35 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     );
   }
 
+  Widget _buildAdvancedHeader() {
+    return GestureDetector(
+      onTap: () => setState(() => _advancedExpanded = !_advancedExpanded),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        child: Row(
+          children: [
+            const Text(
+              'Advanced',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
+            ),
+            const Spacer(),
+            Icon(
+              _advancedExpanded
+                  ? CupertinoIcons.chevron_up
+                  : CupertinoIcons.chevron_down,
+              size: 16,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCompressionToggle() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -713,7 +863,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       child: Row(
         children: [
           const Icon(CupertinoIcons.archivebox,
-              size: 18, color: AppColors.muted),
+              size: 18, color: AppColors.textSecondary),
           const SizedBox(width: 12),
           const Expanded(
             child: Column(
@@ -723,10 +873,10 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.text)),
+                        color: AppColors.textPrimary)),
                 SizedBox(height: 2),
                 Text('Compress DNS payloads (zlib)',
-                    style: TextStyle(fontSize: 12, color: AppColors.muted)),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -767,6 +917,11 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
             recordType: _recordType,
             queryLength: int.tryParse(_queryLengthCtrl.text) ?? 101,
             connectionMethod: _connectionMethod,
+            queryRateLimit: int.tryParse(_queryRateLimitCtrl.text) ?? 0,
+            idleTimeout: _idleTimeoutCtrl.text.isNotEmpty ? int.tryParse(_idleTimeoutCtrl.text) : null,
+            udpTimeout: _udpTimeoutCtrl.text.isNotEmpty ? int.tryParse(_udpTimeoutCtrl.text) : null,
+            maxLabels: _maxLabelsCtrl.text.isNotEmpty ? int.tryParse(_maxLabelsCtrl.text) : null,
+            clientIdSize: int.tryParse(_clientIdSizeCtrl.text) ?? 2,
           )
         : Profile(
             id: widget.profile?.id ?? const Uuid().v4(),
@@ -798,6 +953,11 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
             compression: _compression,
             mtu: int.tryParse(_mtuCtrl.text),
             timeout: int.tryParse(_timeoutCtrl.text),
+            queryRateLimit: int.tryParse(_queryRateLimitCtrl.text) ?? 0,
+            idleTimeout: _idleTimeoutCtrl.text.isNotEmpty ? int.tryParse(_idleTimeoutCtrl.text) : null,
+            udpTimeout: _udpTimeoutCtrl.text.isNotEmpty ? int.tryParse(_udpTimeoutCtrl.text) : null,
+            maxLabels: _maxLabelsCtrl.text.isNotEmpty ? int.tryParse(_maxLabelsCtrl.text) : null,
+            clientIdSize: int.tryParse(_clientIdSizeCtrl.text) ?? 2,
             isLocked: _isLocked,
             encryptedUri: _currentProfile?.encryptedUri,
           );
@@ -904,6 +1064,11 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       _socksPassCtrl.text = decryptedData.socksPassword ?? '';
       _mtuCtrl.text = '${decryptedData.mtu ?? 1400}';
       _timeoutCtrl.text = '${decryptedData.timeout ?? 30}';
+      _queryRateLimitCtrl.text = '${decryptedData.queryRateLimit}';
+      _idleTimeoutCtrl.text = decryptedData.idleTimeout != null ? '${decryptedData.idleTimeout}' : '';
+      _udpTimeoutCtrl.text = decryptedData.udpTimeout != null ? '${decryptedData.udpTimeout}' : '';
+      _maxLabelsCtrl.text = decryptedData.maxLabels != null ? '${decryptedData.maxLabels}' : '';
+      _clientIdSizeCtrl.text = '${decryptedData.clientIdSize}';
       _tunnelType = decryptedData.tunnelType;
       _dnsTransport = decryptedData.dnsTransport;
       _recordType = decryptedData.recordType;

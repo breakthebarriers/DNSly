@@ -85,7 +85,7 @@ class _DnsScannerScreenState extends State<DnsScannerScreen> {
             bottom: BorderSide(color: AppColors.cardBorder, width: 0.5),
           ),
           middle: const Text('DNS Scanner',
-              style: TextStyle(color: AppColors.textPrimary)),
+              style: TextStyle(inherit: false, color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
         ),
         child: SafeArea(
           child: BlocBuilder<DnsScannerBloc, DnsScannerState>(
@@ -615,7 +615,13 @@ class _DnsScannerScreenState extends State<DnsScannerScreen> {
                         }).toList();
                         Navigator.of(context).pop(selected);
                       },
-                child: Text('Add Selected (${_selectedResults.length})'),
+                child: Text(
+                  'Add Selected (${_selectedResults.length})',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],
@@ -629,7 +635,13 @@ class _DnsScannerScreenState extends State<DnsScannerScreen> {
                 onPressed: _selectedResults.isEmpty
                     ? null
                     : () => _showProfilePicker(state),
-                child: Text('Add to Profile (${_selectedResults.length})'),
+                child: Text(
+                  'Add to Profile (${_selectedResults.length})',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],

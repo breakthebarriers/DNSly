@@ -717,6 +717,88 @@
     }
     .social-link:hover { color: var(--text); border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.05); }
 
+    /* ─── GITHUB ─────────────────────────────────────────── */
+    #github {
+      padding: 80px 24px;
+      text-align: center;
+    }
+    .github-card {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 48px 40px;
+    }
+    .github-card h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .github-card > p { color: var(--text-muted); font-size: 15px; line-height: 1.7; margin-bottom: 36px; }
+    .github-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .gh-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+    .gh-badge:hover { border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.07); }
+    .gh-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+    .github-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .gh-stat {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .gh-stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--blue);
+      display: block;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .gh-stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .github-cta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .btn-github {
+      background: #238636;
+      color: #fff;
+    }
+    .btn-github:hover { background: #2ea043; }
+    @media (max-width: 640px) {
+      .github-card { padding: 32px 20px; }
+      .github-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
     /* ─── DONATE ──────────────────────────────────────────── */
     .btn-amber {
       background: linear-gradient(135deg, #9a6500, var(--amber));
@@ -811,6 +893,7 @@
       <li><a href="#how">How it works</a></li>
       <li><a href="#tunnel">Tunnel types</a></li>
       <li><a href="#security">Security</a></li>
+      <li><a href="#github">GitHub</a></li>
       <!-- <li><a href="#donate">Donate</a></li> -->
       <!-- <li><a href="#download">Download</a></li> -->
     </ul>
@@ -1180,6 +1263,64 @@
   </a>
 </section> -->
 
+<!-- GITHUB -->
+<section id="github">
+  <div class="github-card">
+    <div class="section-label">Open Source</div>
+    <h2>Built in the open</h2>
+    <p>DNSly is open source. Read the code, report issues, contribute, or just leave a star if you believe in a free internet.</p>
+
+    <div class="github-badges">
+      <a class="gh-badge" href="https://github.com/breakthebarriers/DNSly" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        breakthebarriers / DNSly
+      </a>
+      <span class="gh-badge">
+        <div class="dot"></div>
+        Open Source · MIT
+      </span>
+      <a class="gh-badge" href="https://github.com/breakthebarriers/DNSly/releases/latest" target="_blank" rel="noopener" id="gh-latest-release">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="1"/></svg>
+        Latest release: <span id="gh-version">loading…</span>
+      </a>
+    </div>
+
+    <div class="github-stats">
+      <div class="gh-stat">
+        <span class="gh-stat-value" id="gh-stars">—</span>
+        <span class="gh-stat-label">⭐ Stars</span>
+      </div>
+      <div class="gh-stat">
+        <span class="gh-stat-value" id="gh-forks">—</span>
+        <span class="gh-stat-label">🍴 Forks</span>
+      </div>
+      <div class="gh-stat">
+        <span class="gh-stat-value" id="gh-issues">—</span>
+        <span class="gh-stat-label">🐛 Open Issues</span>
+      </div>
+      <div class="gh-stat">
+        <span class="gh-stat-value" id="gh-watchers">—</span>
+        <span class="gh-stat-label">👁 Watchers</span>
+      </div>
+    </div>
+
+    <div class="github-cta">
+      <a href="https://github.com/breakthebarriers/DNSly" target="_blank" rel="noopener" class="btn btn-github btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="https://github.com/breakthebarriers/DNSly/releases/latest" target="_blank" rel="noopener" class="btn btn-ghost btn-lg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Latest
+      </a>
+      <a href="https://github.com/breakthebarriers/DNSly/issues" target="_blank" rel="noopener" class="btn btn-ghost btn-lg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Report an Issue
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- DONATE -->
 <section id="donate">
   <div class="donate-card">
@@ -1190,14 +1331,14 @@
     <p class="wallet-type-label">Bitcoin (BTC)</p>
     <div class="wallet-box">
       <img src="2026-04-23 13.45.39.jpg" width="128px"/>
-      <span class="wallet-addr" id="walletAddr">bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx</span>
-      <button class="copy-btn" onclick="copyWallet()">Copy</button>
+      <span class="wallet-addr" id="walletAddrBtc">bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx</span>
+      <button class="copy-btn" onclick="copyWallet('walletAddrBtc', this)">Copy</button>
     </div>
     <p class="wallet-type-label" style="padding-top: 64px;">Tether (TRC20)</p>
     <div class="wallet-box">
       <img src="2026-04-23 13.45.58.jpg" width="128px"/>
-      <span class="wallet-addr" id="walletAddr">TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW</span>
-      <button class="copy-btn" onclick="copyWallet()">Copy</button>
+      <span class="wallet-addr" id="walletAddrUsdt">TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW</span>
+      <button class="copy-btn" onclick="copyWallet('walletAddrUsdt', this)">Copy</button>
     </div>
   </div>
 </section>
@@ -1230,14 +1371,36 @@
 <script>
 lucide.createIcons();
 
-function copyWallet() {
-  const addr = document.getElementById('walletAddr').textContent;
+function copyWallet(id, btn) {
+  const addr = document.getElementById(id).textContent;
   navigator.clipboard.writeText(addr).then(() => {
-    const btn = document.querySelector('.copy-btn');
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy', 2000);
   });
 }
+
+// Fetch live GitHub stats
+(async function loadGithubStats() {
+  try {
+    const [repo, release] = await Promise.all([
+      fetch('https://api.github.com/repos/breakthebarriers/DNSly').then(r => r.json()),
+      fetch('https://api.github.com/repos/breakthebarriers/DNSly/releases/latest').then(r => r.json()),
+    ]);
+
+    const fmt = n => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n;
+
+    document.getElementById('gh-stars').textContent    = fmt(repo.stargazers_count ?? 0);
+    document.getElementById('gh-forks').textContent    = fmt(repo.forks_count ?? 0);
+    document.getElementById('gh-issues').textContent   = fmt(repo.open_issues_count ?? 0);
+    document.getElementById('gh-watchers').textContent = fmt(repo.subscribers_count ?? 0);
+
+    if (release.tag_name) {
+      document.getElementById('gh-version').textContent = release.tag_name;
+    }
+  } catch (e) {
+    // silently fail — dashes remain if API is unreachable
+  }
+})();
 </script>
 </body>
 </html>

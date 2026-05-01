@@ -28,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           bottom: BorderSide(color: AppColors.cardBorder, width: 0.5),
         ),
         middle: const Text('Settings',
-            style: TextStyle(color: AppColors.textPrimary)),
+            style: TextStyle(inherit: false, color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
       ),
       child: SafeArea(
         child: ListView(

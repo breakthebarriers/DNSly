@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen>
           bottom: BorderSide(color: AppColors.cardBorder, width: 0.5),
         ),
         middle:
-        const Text('DNSly', style: TextStyle(color: AppColors.textPrimary)),
+        const Text('DNSly', style: TextStyle(inherit: false, color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
       ),
       child: SafeArea(
         child: BlocBuilder<ConnectionBloc, conn.ConnectionState>(

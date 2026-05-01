@@ -42,13 +42,13 @@ class FormFieldTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 14, color: AppColors.muted),
+                Icon(icon, size: 14, color: AppColors.textSecondary),
                 const SizedBox(width: 6),
                 Text(
                   label,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: AppColors.muted,
+                    color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -62,15 +62,16 @@ class FormFieldTile extends StatelessWidget {
               obscureText: obscureText,
               maxLines: obscureText ? 1 : maxLines,
               enabled: enabled,
-              style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+              style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
               placeholderStyle: const TextStyle(
                 fontSize: 14,
-                color: AppColors.muted,
+                color: AppColors.textMuted,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.cardBorder,
+                color: AppColors.scaffold,
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.cardBorder),
               ),
             ),
           ],
