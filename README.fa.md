@@ -1,4 +1,4 @@
-# اپلیکیشن DNSly
+# DNSly
 
 <div align="left">
 
@@ -8,34 +8,108 @@
 
 ![بازدیدکنندگان](https://visitor-badge.laobi.icu/badge?page_id=breakthebarriers.DNSly)
 
+<p align="center">
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.25.56.png" alt="DNSly Logo" width="200">
+</p>
+
 <div dir="rtl">
 
-**DNSly** یک کلاینت موبایل ضد سانسور است که با Flutter ساخته شده و روی مدیریت پروفایل‌های DNS/تانل تمرکز دارد. هسته‌ی تانل به Go نوشته شده، با ابزار gomobile به iOS متصل می‌شود و پروتکل‌های متعددی را پشتیبانی می‌کند.
+یک کلاینت VPN ضدسانسور سریع و مدرن برای iOS با پشتیبانی از DNS tunneling و پروتکل‌های متعدد. با Flutter ساخته شده و هسته‌ی تانل آن به Go نوشته شده که از طریق gomobile به iOS متصل است.
 
----
+> **DNSly یک ابزار ضدسانسور مشروع است** که برای کمک به کاربران کشورهایی با سانسور اینترنت ساخته شده تا به اینترنت آزاد دسترسی داشته باشند. این پروژه مشابه [Tor](https://www.torproject.org/)، [Psiphon](https://psiphon.ca/) و [dnstt](https://www.bamsoftware.com/software/dnstt/) است. این پروژه هیچ سیستمی را هدف قرار نمی‌دهد یا به آن حمله نمی‌کند — این ابزاری است که کاربران داوطلبانه برای حفظ حریم خصوصی استفاده می‌کنند.
+
+## جامعه
+
+برای دریافت آپدیت، پشتیبانی و بحث به ما بپیوندید:
+
+</div>
+
+[![Telegram](https://img.shields.io/badge/Telegram-Break__The__Barriers-blue?logo=telegram)](https://t.me/Break_The_Barriers)
+[![X (Twitter)](https://img.shields.io/badge/X-breakthebariers-black?logo=x)](https://x.com/breakthebariers)
+
+<div dir="rtl">
+
+## حمایت مالی
+
+اگر DNSly برایتان مفید بوده، می‌توانید از توسعه آن حمایت کنید:
+
+</div>
+
+<div align="center">
+
+| بیت‌کوین (BTC) | تتر (USDT — TRC20) |
+|:---:|:---:|
+| <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bitcoin:bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx" width="150" alt="BTC QR Code"> | <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW" width="150" alt="USDT TRC20 QR Code"> |
+| `bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx` | `TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW` |
+
+</div>
+
+<div dir="rtl">
+
+## انواع تانل
+
+DNSly از چندین نوع تانل با امکان ترکیب پشتیبانی می‌کند:
+
+| نوع تانل | پروتکل | توضیح |
+|----------|---------|-------|
+| **VayDNS** | DNS/TXT | DNS tunneling بهینه — ترافیک TCP را به DNS query تبدیل می‌کند |
+| **VayDNS + SSH** | DNS + SSH | VayDNS با زنجیر SSH برای رمزنگاری بیشتر |
+| **VayDNS + SOCKS5** | DNS + SOCKS5 | VayDNS با relay به upstream SOCKS5 |
+| **SSH** | SSH | پورت-فورواردینگ دینامیک SSH مستقل |
+| **SOCKS5 Relay** | SOCKS5 | ارسال شفاف ترافیک به پروکسی upstream |
+
+**حمل‌ونقل DNS:**
+
+| حالت | پورت | پروتکل |
+|------|------|--------|
+| Classic UDP | 53 | UDP ساده |
+| TCP | 53 | DNS over TCP |
+| DoT | 853 | DNS-over-TLS (RFC 7858) |
+| DoH | 443 | DNS-over-HTTPS POST (RFC 8484) |
+
+## قابلیت‌ها
+
+- **یکپارچگی VPN در iOS**: دریافت ترافیک در سطح سیستم از طریق iOS NetworkExtension (PacketTunnel)
+- **انواع تانل**: VayDNS، SSH، SOCKS5 و ترکیب‌های hybrid
+- **انتخاب حمل‌ونقل DNS**: UDP، TCP، DoT یا DoH
+- **SSH Tunneling**: زنجیر SSH از طریق VayDNS یا پورت-فورواردینگ مستقل
+- **احراز هویت SSH با کلید**: رمز عبور یا کلید خصوصی PEM
+- **انتخاب cipher SSH**: AES-256-GCM، AES-128-GCM، ChaCha20-Poly1305
+- **پروفایل‌های متعدد**: ایجاد و مدیریت چندین پروفایل سرور
+- **ورودی/خروجی QR**: اشتراک‌گذاری پروفایل به صورت QR — مفید هنگام محدودیت اینترنت
+- **پروفایل رمزنگاری‌شده**: محافظت از پروفایل با رمزنگاری AES-256-CBC
+- **اسکنر DNS**: تست موازی تأخیر resolver برای یافتن سریع‌ترین سرور DNS
+- **آمار لحظه‌ای**: مانیتورینگ زنده bytes دریافت/ارسال، uptime و latency
+- **سرور پروفایل**: سرور HTTP داخلی Go برای توزیع پروفایل به دستگاه‌ها
+- **کدک SlipNet**: سازگار با فرمت‌های URI `slipnet://` و `slipnet-enc://`
+- **حالت تاریک**: پشتیبانی کامل از تم تاریک سیستم
+- **چندپلتفرمی**: کد Flutter برای iOS (اصلی)، Android، macOS، Linux و Windows
 
 ## تصاویر
 
 </div>
 
-<div align="center">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.25.56.png" width="200" alt="صفحه اصلی">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.26.05.png" width="200" alt="لیست پروفایل‌ها">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.26.27.png" width="200" alt="ویرایش پروفایل">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.26.37.png" width="200" alt="اکسپورت QR">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.27.41.png" width="200" alt="اسکنر DNS">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.28.14.png" width="200" alt="اسکنر DNS">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.28.45.png" width="200" alt="اسکنر DNS">
-  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.29.41.png" width="200" alt="اسکنر DNS">
-</div>
+<p align="center">
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.25.56.png" alt="صفحه اصلی" width="200">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.26.05.png" alt="پروفایل‌ها" width="200">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.26.27.png" alt="ویرایش پروفایل" width="200">
+</p>
 
----
+<p align="center">
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.26.37.png" alt="اکسپورت QR" width="200">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.27.41.png" alt="اسکنر DNS" width="200">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.28.14.png" alt="نتایج اسکنر" width="200">
+</p>
 
 <div dir="rtl">
 
 ## معماری
 
-ترافیک دستگاه از طریق **Tun2Socks** به یک SOCKS5 محلی هدایت می‌شود. هسته‌ی Go این ترافیک را گرفته و بسته به پروفایل انتخاب‌شده از یکی از تانل‌های زیر عبور می‌دهد:
+ترافیک دستگاه از طریق **Tun2Socks** در PacketTunnel Extension گرفته شده و به یک SOCKS5 محلی هدایت می‌شود. هسته‌ی Go تانل را مدیریت می‌کند:
 
 </div>
 
@@ -56,17 +130,9 @@ Local SOCKS5 (127.0.0.1:PORT)  ← Go tunnel engine
 
 <div dir="rtl">
 
-**مدهای تانل:**
-- **VayDNS** — ترافیک TCP را در قالب DNS TXT query رمزنگاری و ارسال می‌کند.
-- **SSH Proxy** — پورت-فورواردینگ دینامیک SSH (معادل `ssh -D`).
-- **SOCKS5 Relay** — پاس‌دادن مستقیم ترافیک به یک پروکسی upstream.
-- **Hybrid** — ترکیب VayDNS با SSH یا SOCKS5 به عنوان fallback.
-
----
-
 ## پروتکل VayDNS
 
-هر اتصال TCP به یک session چهار بایتی تصادفی تبدیل می‌شود. داده‌ها به قطعه‌های حداکثر ۱۲۰ بایتی تقسیم شده، با Base32 کدگذاری می‌شوند و به عنوان QNAME در DNS ارسال می‌شوند:
+هر اتصال TCP یک session ID چهار بایتی تصادفی دریافت می‌کند. داده‌ها به قطعه‌های حداکثر ۱۲۰ بایتی تقسیم شده، با Base32 کدگذاری و در DNS QNAME جاسازی می‌شوند:
 
 </div>
 
@@ -76,16 +142,12 @@ Upload query QNAME:
 
 Download poll QNAME:
   {base32(sid[4] ‖ recvSeq[4])}.r.{domain}.
-
-Example:
-  AEBAGBAF3DFQQ.d.tunnel.example.com.   → TXT query (upload chunk)
-  AEBAGBAF.r.tunnel.example.com.        → TXT query (poll for reply)
 ```
 
 <div dir="rtl">
 
 | فیلد | اندازه | توضیح |
-|---|---|---|
+|------|--------|-------|
 | `sid` | ۴ بایت | شناسه تصادفی session برای هر اتصال TCP |
 | `seq` | ۴ بایت | uint32 big-endian، به ازای هر chunk افزایش می‌یابد |
 | `isSyn` | ۱ بایت | `0x01` فقط در اولین chunk (حاوی آدرس مقصد) |
@@ -93,20 +155,9 @@ Example:
 
 **فاصله polling دانلود:** ۸۰ میلی‌ثانیه
 
-**حمل‌ونقل DNS:**
+## فرمت پروفایل (SlipNet)
 
-| حالت | پورت | پروتکل |
-|---|---|---|
-| `classic` | 53 | UDP ساده |
-| `tcp` | 53 | DNS over TCP |
-| `dot` | 853 | DNS-over-TLS (RFC 7858) |
-| `doh` | 443 | DNS-over-HTTPS POST (RFC 8484) |
-
----
-
-## پروفایل و کدک SlipNet
-
-پروفایل‌ها به دو فرمت اکسپورت می‌شوند:
+پروفایل‌ها در دو فرمت اکسپورت می‌شوند:
 
 </div>
 
@@ -123,7 +174,7 @@ envelope = {
   "v": 2,
   "iv": "<base64 16-byte random IV>",
   "ct": "<base64 AES-256-CBC ciphertext>",
-  "meta": { name, server, domain, ... }
+  "meta": { name, server, domain, ... }   ← فیلدهای پیش‌نمایش متن ساده
 }
 
 Key derivation: SHA256(password) → 32-byte AES key
@@ -131,207 +182,64 @@ Key derivation: SHA256(password) → 32-byte AES key
 
 <div dir="rtl">
 
-فیلد `meta` به کاربر اجازه می‌دهد بدون وارد کردن رمز، اطلاعات کلی پروفایل را ببیند. پس از وارد کردن رمز، کل پروفایل رمزگشایی می‌شود.
+فیلد `meta` اجازه می‌دهد بدون رمز، اطلاعات کلی پروفایل دیده شود. رمزگشایی کامل نیاز به رمز صحیح دارد.
 
-**فرمت قدیمی v1:**
+## پیش‌نیازها
 
-</div>
+### اپلیکیشن iOS
 
-```
-0x01 | 12-byte GCM IV | AES-256-GCM(profile) | 16-byte tag
-Key: raw 64-char hex string (no derivation)
-```
+- iOS 15.0 یا بالاتر
+- Xcode 15 یا جدیدتر
+- Flutter SDK (stable channel)
+- Go 1.21+ با gomobile (`go install golang.org/x/mobile/cmd/gomobile@latest`)
 
----
+## ساخت پروژه
 
-<div dir="rtl">
-
-## مدل داده
-
-ساختار اصلی `Profile` شامل تمام پارامترهای لازم برای هر نوع تانل است:
+### ۱. ساخت فریم‌ورک Go
 
 </div>
 
-```dart
-class Profile {
-  String id                  // UUID v4
-  String name
-  TunnelType tunnelType      // vayDns | vayDnsSsh | vayDnsSocks | ssh | socks5
-  String server
-  int port
-  String domain
-
-  // DNS
-  String dnsResolver
-  DnsTransport dnsTransport  // classic | tcp | doh | dot
-  DnsRecordType recordType   // TXT (default) | A
-  int queryLength
-
-  // SSH
-  String? sshHost
-  int? sshPort
-  String? sshUser
-  String? sshPassword
-  String? sshKey
-  SshCipher? sshCipher
-  SshAuthType sshAuthType
-
-  // SOCKS5
-  String? socksUser
-  String? socksPassword
-
-  // Network
-  bool compression
-  int? mtu
-  int? timeout
-
-  bool isLocked
-  String? encryptedUri
-}
-```
-
----
-
-<div dir="rtl">
-
-## مدیریت State (BLoC)
-
-اپلیکیشن از سه BLoC اصلی برای مدیریت state استفاده می‌کند:
-
-### ConnectionBloc
-
-</div>
-
-```dart
-Events:
-  ConnectionStarted(Profile)
-  ConnectionStopped()
-  ConnectionStatsUpdated(bytesIn, bytesOut, uptime, latencyMs)
-  ConnectionErrorOccurred(String message)
-  ConnectionNativeStatusChanged(String status, String? error)
-
-State:
-  ConnectionStatus   // disconnected | connecting | connected | stopping | error
-  Profile? activeProfile
-  int bytesIn / bytesOut
-  Duration uptime
-  int latencyMs
-  List<String> logs
-```
-
-### ProfileBloc
-
-```dart
-Events:
-  ProfilesLoaded()
-  ProfileAdded(Profile)
-  ProfileUpdated(Profile)
-  ProfileDeleted(String id)
-  ProfileActivated(Profile)
-  ProfileImported(String uris)
-  ProfileImportedEncrypted(uri, password)
-  EncryptedProfileUnlockRequested(uri, password)
-
-State:
-  ProfileStatus
-  List<Profile> profiles
-  Profile? activeProfile
-  String? pendingEncryptedPayload
-  String? importError
-```
-
-### DnsScannerBloc
-
-```dart
-Events:
-  DnsScanStarted(List<String> resolvers)
-  DnsScanReset()
-
-States:
-  DnsScannerInitial | DnsScannerLoading
-  DnsScannerSuccess(fastestResolver, latencyMs)
-  DnsScannerFailure(message)
+```bash
+cd go
+gomobile init
+gomobile bind -target=ios -o ../ios/Frameworks/Tunnel.xcframework ./tunnel
 ```
 
 <div dir="rtl">
 
-اسکنر DNS به صورت موازی به پورت ۵۳ همه‌ی resolverها وصل می‌شود و سریع‌ترین را انتخاب می‌کند.
-
----
-
-## Go Tunnel API
-
-API عمومی هسته‌ی Go (قابل bind با gomobile):
+### ۲. نصب وابستگی‌های Flutter
 
 </div>
 
-```go
-Start(configJSON string) int   // returns local SOCKS5 port, -1 on error
-Stop()
-IsRunning() bool
-LastError() string
-```
-
----
-
-<div dir="rtl">
-
-## سرور پروفایل
-
-یک سرور HTTP ساده برای توزیع و مدیریت پروفایل‌ها، بدون وابستگی خارجی:
-
-</div>
-
-```
-GET  /health                           → { "ok": true, "time": "..." }
-GET  /v1/profiles                      → { "profiles": [...] }
-POST /v1/profiles                      → { "profile": {...}, "iosVpn": {...} }
-GET  /v1/profiles/{id}/ios-config      → { "profileId": "...", "iosVpn": {...} }
+```bash
+flutter pub get
 ```
 
 <div dir="rtl">
 
-تمام مسیرهای `/v1/` نیاز به `Authorization: Bearer {apiKey}` دارند.
-
-**ذخیره‌سازی:** فایل JSON در `server/data/profiles.json`، محافظت‌شده با mutex.
-
----
-
-## فناوری
-
-**هسته (Go)**
-- `golang.org/x/crypto` — SSH، TLS، AEAD
-- `golang.org/x/net` — پردازش بسته‌های DNS
-- `golang.org/x/mobile` — gomobile bind برای iOS
-- حمل‌ونقل: UDP 53 · TCP 53 · DoT 853 · DoH 443
-
-**کلاینت موبایل (Flutter / Dart 3)**
-- `flutter_bloc ^9.1.1` — مدیریت state
-- `hive_flutter ^1.1.0` + `shared_preferences ^2.2.2` — ذخیره‌سازی محلی
-- `mobile_scanner ^7.2.0` + `qr_flutter ^4.1.0` — ورودی/خروجی QR
-- `encrypt ^5.0.3` — رمزنگاری AES-256-CBC
-- `uuid ^4.2.1` — تولید شناسه پروفایل
-
-**سرور پروفایل (Go)**
-- فقط کتابخانه استاندارد
-- REST + احراز هویت Bearer token
-
----
-
-## حمایت از پروژه
-
-اگر DNSly برایتان مفید بوده، می‌توانید از توسعه آن حمایت کنید:
-
-<div align="center">
-
-| بیت‌کوین (BTC) | تتر (USDT — TRC20) |
-|:---:|:---:|
-| <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bitcoin:bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx" width="150" alt="BTC QR Code"> | <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW" width="150" alt="USDT TRC20 QR Code"> |
-| `bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx` | `TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW` |
+### ۳. اجرا روی شبیه‌ساز یا دستگاه
 
 </div>
 
----
+```bash
+flutter run --release
+```
+
+<div dir="rtl">
+
+> **توجه:** PacketTunnel Extension برای کارکرد VPN واقعی نیاز به دستگاه واقعی و حساب Apple Developer دارد. شبیه‌ساز فقط رابط کاربری را نشان می‌دهد.
+
+### ساخت سرور پروفایل
+
+</div>
+
+```bash
+cd server
+go build -o dnsly-server .
+./dnsly-server
+```
+
+<div dir="rtl">
 
 ## ساختار پروژه
 
@@ -369,7 +277,54 @@ lib/
   utils/
     slipnet_codec.dart
 
+ios/
+  Runner/
+  DNSly/
+  Frameworks/
+
 test/
   slipnet_enc_upstream_test.dart
   upstream_slipnet_decoder_test.dart
 ```
+
+<div dir="rtl">
+
+## فناوری
+
+### هسته تانل (Go)
+
+- `golang.org/x/crypto` — SSH، TLS، AEAD
+- `golang.org/x/net` — پردازش بسته‌های DNS
+- `golang.org/x/mobile` — gomobile bind برای iOS
+- حمل‌ونقل: UDP 53 · TCP 53 · DoT 853 · DoH 443
+
+### کلاینت موبایل (Flutter / Dart 3)
+
+- `flutter_bloc ^9.1.1` — مدیریت state با BLoC
+- `hive_flutter ^1.1.0` + `shared_preferences ^2.2.2` — ذخیره‌سازی محلی
+- `mobile_scanner ^7.2.0` + `qr_flutter ^4.1.0` — ورودی/خروجی QR
+- `encrypt ^5.0.3` — رمزنگاری AES-256-CBC
+- `crypto ^3.0.6` — مشتق‌سازی کلید SHA-256
+- `uuid ^4.2.1` — تولید شناسه پروفایل
+
+### سرور پروفایل (Go)
+
+- فقط کتابخانه استاندارد
+- REST API + احراز هویت Bearer token
+- تولید config `NEVPNProtocol` برای iOS
+
+## مشارکت
+
+مشارکت‌ها خوش‌آمد هستند! لطفاً Pull Request ارسال کنید.
+
+۱. Fork کنید  
+۲. برنچ ویژگی بسازید (`git checkout -b feature/amazing-feature`)  
+۳. تغییرات را commit کنید (`git commit -m 'Add some amazing feature'`)  
+۴. به برنچ push کنید (`git push origin feature/amazing-feature`)  
+۵. Pull Request باز کنید
+
+## مجوز
+
+این پروژه تحت مجوز MIT منتشر شده است. برای جزئیات [LICENSE](./LICENSE) را ببینید.
+
+</div>
