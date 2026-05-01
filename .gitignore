@@ -46,4 +46,5 @@ app.*.map.json
 /android/app/release
 
 
-/landing/
+.landing/
+/landing
