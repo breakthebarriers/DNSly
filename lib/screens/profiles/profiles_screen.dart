@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:flutter/services.dart';
+
 import '../../models/profile.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/slipnet_codec.dart';
 import '../dns_scanner/dns_scanner_bloc.dart';
 import '../dns_scanner/dns_scanner_screen.dart';
 import 'profile_editor_screen.dart';
+import 'profile_reachability_screen.dart';
 import 'import_dialog.dart';
 import 'export_sheet.dart';
 import '../../blocs/profile/profile_bloc.dart';
@@ -128,7 +132,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
     return SafeArea(
       child: Column(
         children: [
-          if (_selectionMode) _buildSelectionBar(context, state),
+          if (_selectionMode) _buildSelectionBar(context, state) else _buildActionsMenu(context, state),
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -216,9 +220,295 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
             onPressed: selectedCount == 0 ? null : () => _addDnsToSelected(context, state),
             child: const Text('Add DNS'),
           ),
+          const SizedBox(width: 6),
+          CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            onPressed: selectedCount == 0 ? null : () => _showSelectedActionsMenu(context, state),
+            child: const Icon(CupertinoIcons.ellipsis, size: 20),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildActionsMenu(BuildContext context, ProfileState state) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: CupertinoButton(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        color: state.profiles.isEmpty ? null : AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        onPressed: state.profiles.isEmpty ? null : () => _showAllActionsMenu(context, state),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(CupertinoIcons.ellipsis, size: 20),
+            SizedBox(width: 8),
+            Text('Actions'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAllActionsMenu(BuildContext context, ProfileState state) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            child: const Text('Ping All'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _navigateToReachabilityScreen(context, state.profiles);
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Test Reachability All'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _navigateToReachabilityScreen(context, state.profiles);
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Export All'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _exportAllProfiles(context, state);
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Delete Duplicates'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _confirmDeleteDuplicates(context);
+            },
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            child: const Text('Delete All'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _confirmDeleteAll(context);
+            },
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          child: const Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  void _showSelectedActionsMenu(BuildContext context, ProfileState state) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            child: const Text('Ping Selected'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pingSelectedProfiles(context, state);
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Test Reachability Selected'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pingSelectedProfiles(context, state);
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Export Selected'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _exportSelectedProfiles(context, state);
+            },
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            child: const Text('Delete Selected'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _confirmDeleteSelected(context);
+            },
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            child: const Text('Delete All'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _confirmDeleteAll(context);
+            },
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          child: const Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToReachabilityScreen(BuildContext context, List<Profile> profiles) {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (_) => ProfilesReachabilityScreen(profiles: profiles),
+      ),
+    );
+  }
+
+  void _pingSelectedProfiles(BuildContext context, ProfileState state) {
+    final selected = state.profiles.where((p) => _selectedProfileIds.contains(p.id)).toList();
+    if (selected.isEmpty) return;
+    _navigateToReachabilityScreen(context, selected);
+  }
+
+  void _confirmDeleteDuplicates(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('Delete Duplicates'),
+        content: const Text(
+          'Remove duplicate profiles and keep the first occurrence of each unique profile.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<ProfileBloc>().add(const ProfileDeletedDuplicates());
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteAll(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('Delete All Profiles'),
+        content: const Text(
+          'Permanently delete all profiles from the app. This cannot be undone.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete All'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<ProfileBloc>().add(const ProfileDeletedAll());
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteSelected(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('Delete Selected Profiles'),
+        content: Text(
+          'Permanently delete ${_selectedProfileIds.length} profile(s). This cannot be undone.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteSelectedProfiles(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteSelectedProfiles(BuildContext context) {
+    for (final id in _selectedProfileIds) {
+      context.read<ProfileBloc>().add(ProfileDeleted(id));
+    }
+    setState(() {
+      _selectedProfileIds.clear();
+    });
+  }
+
+  Future<void> _exportAllProfiles(BuildContext context, ProfileState state) async {
+    if (state.profiles.isEmpty) return;
+    await _copyProfilesToClipboard(state.profiles);
+    if (mounted) {
+      setState(() => _selectionMode = false);
+    }
+  }
+
+  Future<void> _exportSelectedProfiles(BuildContext context, ProfileState state) async {
+    final selected = state.profiles.where((p) => _selectedProfileIds.contains(p.id)).toList();
+    if (selected.isEmpty) return;
+    await _copyProfilesToClipboard(selected);
+    if (mounted) {
+      setState(() => _selectionMode = false);
+    }
+  }
+
+  Future<void> _copyProfilesToClipboard(List<Profile> profiles) async {
+    try {
+      final uris = profiles.map((p) => SlipnetCodec.encode(p)).toList();
+      final text = uris.join('\n');
+      await Clipboard.setData(ClipboardData(text: text));
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (_) => CupertinoAlertDialog(
+            title: const Text('Exported'),
+            content: Text('${profiles.length} profile(s) copied to clipboard'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (_) => CupertinoAlertDialog(
+            title: const Text('Error'),
+            content: const Text('Failed to copy to clipboard'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _addDnsToSelected(BuildContext context, ProfileState state) async {

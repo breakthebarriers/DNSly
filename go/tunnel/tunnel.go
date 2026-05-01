@@ -15,7 +15,8 @@ import (
 // gomobile can pass them without reflection issues.
 type Config struct {
 	// TunnelType selects the transport: "ssh", "vayDnsSsh", "socks5",
-	// "vayDnsSocks", "vaydns", "vayDns".
+	// "vayDnsSocks", "vaydns", "vayDns", "sshTls", "sshWebsocket",
+	// "sshHttpConnect", "sshPayloadInjection".
 	TunnelType string `json:"tunnelType"`
 
 	// Server / Port are the upstream SOCKS5 server (socks5 mode) or the
@@ -38,6 +39,18 @@ type Config struct {
 	SshUser     string `json:"sshUser"`
 	SshPassword string `json:"sshPassword"`
 	SshKey      string `json:"sshKey"`
+
+	// DPI Bypass options - SSH over TLS/WebSocket/HTTP
+	SshTlsEnabled      bool   `json:"sshTlsEnabled"`      // Wrap SSH in TLS
+	SshTlsSni          string `json:"sshTlsSni"`          // Custom SNI for domain fronting
+	SshWsEnabled       bool   `json:"sshWsEnabled"`       // Use WebSocket transport
+	SshWsPath          string `json:"sshWsPath"`          // WebSocket path (e.g., "/ws")
+	SshWsUseTls        bool   `json:"sshWsUseTls"`        // Use wss:// (TLS over WebSocket)
+	SshWsHost          string `json:"sshWsHost"`          // Custom Host header for WebSocket
+	SshHttpProxyHost   string `json:"sshHttpProxyHost"`   // HTTP CONNECT proxy host
+	SshHttpProxyPort   int    `json:"sshHttpProxyPort"`   // HTTP CONNECT proxy port
+	SshHttpProxyHostHdr string `json:"sshHttpProxyHostHdr"` // Custom Host header for CONNECT
+	SshPayload         string `json:"sshPayload"`         // Raw payload to inject before SSH
 
 	// SOCKS5 upstream credentials (socks5 mode).
 	SocksUser     string `json:"socksUser"`
@@ -82,7 +95,26 @@ func Start(configJSON string) int {
 
 	switch cfg.TunnelType {
 	case "ssh", "vayDnsSsh":
-		t, err = newSSHProxy(cfg)
+		// Determine SSH transport based on config
+		if cfg.SshHttpProxyHost != "" {
+			t, err = newSSHHTTPConnectProxy(cfg)
+		} else if cfg.SshWsEnabled {
+			t, err = newSSHWebSocketProxy(cfg)
+		} else if cfg.SshPayload != "" {
+			t, err = newSSHPayloadInjectionProxy(cfg)
+		} else if cfg.SshTlsEnabled {
+			t, err = newSSHTLSProxy(cfg)
+		} else {
+			t, err = newSSHProxy(cfg)
+		}
+	case "sshTls":
+		t, err = newSSHTLSProxy(cfg)
+	case "sshWebsocket":
+		t, err = newSSHWebSocketProxy(cfg)
+	case "sshHttpConnect":
+		t, err = newSSHHTTPConnectProxy(cfg)
+	case "sshPayloadInjection":
+		t, err = newSSHPayloadInjectionProxy(cfg)
 	case "vaydns", "vayDns":
 		t, err = newDNSTunnel(cfg)
 	default: // socks5, vayDnsSocks, anything else

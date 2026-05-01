@@ -37,4 +37,17 @@ class ProfileRepository {
       profiles.map((p) => jsonEncode(p.toJson())).toList(),
     );
   }
+
+  Future<void> deleteAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
+
+  Future<void> saveAll(List<Profile> profiles) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _key,
+      profiles.map((p) => jsonEncode(p.toJson())).toList(),
+    );
+  }
 }

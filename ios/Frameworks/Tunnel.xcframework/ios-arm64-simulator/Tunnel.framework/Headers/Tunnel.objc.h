@@ -11,7 +11,35 @@
 #include "Universe.objc.h"
 
 
+@class TunnelChallengeResponse;
 @class TunnelConfig;
+@class TunnelCountryRanges;
+@class TunnelEDNSProbeResult;
+@class TunnelGeoIPScanner;
+@class TunnelPrismMode;
+@class TunnelServerAuthInfo;
+@class TunnelTunnelTestResult;
+@class TunnelTunnelTester;
+
+/**
+ * ChallengeResponse implements a challenge-response protocol
+Server sends challenge, client responds with HMAC of challenge
+ */
+@interface TunnelChallengeResponse : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+- (nonnull instancetype)init;
+/**
+ * GetResponse generates the client's response to the server's challenge
+ */
+- (NSString* _Nonnull)getResponse;
+/**
+ * VerifyResponse verifies the server's response to our challenge
+ */
+- (BOOL)verifyResponse:(NSString* _Nullable)response;
+@end
 
 /**
  * Config is the tunnel configuration. All fields are plain strings/ints so
@@ -25,7 +53,8 @@ gomobile can pass them without reflection issues.
 - (nonnull instancetype)init;
 /**
  * TunnelType selects the transport: "ssh", "vayDnsSsh", "socks5",
-"vayDnsSocks", "vaydns", "vayDns".
+"vayDnsSocks", "vaydns", "vayDns", "sshTls", "sshWebsocket",
+"sshHttpConnect", "sshPayloadInjection".
  */
 @property (nonatomic) NSString* _Nonnull tunnelType;
 /**
@@ -54,6 +83,19 @@ VayDNS server (dns mode).
 @property (nonatomic) NSString* _Nonnull sshPassword;
 @property (nonatomic) NSString* _Nonnull sshKey;
 /**
+ * DPI Bypass options - SSH over TLS/WebSocket/HTTP
+ */
+@property (nonatomic) BOOL sshTlsEnabled;
+@property (nonatomic) NSString* _Nonnull sshTlsSni;
+@property (nonatomic) BOOL sshWsEnabled;
+@property (nonatomic) NSString* _Nonnull sshWsPath;
+@property (nonatomic) BOOL sshWsUseTls;
+@property (nonatomic) NSString* _Nonnull sshWsHost;
+@property (nonatomic) NSString* _Nonnull sshHttpProxyHost;
+@property (nonatomic) long sshHttpProxyPort;
+@property (nonatomic) NSString* _Nonnull sshHttpProxyHostHdr;
+@property (nonatomic) NSString* _Nonnull sshPayload;
+/**
  * SOCKS5 upstream credentials (socks5 mode).
  */
 @property (nonatomic) NSString* _Nonnull socksUser;
@@ -61,6 +103,172 @@ VayDNS server (dns mode).
 @property (nonatomic) long mtu;
 @property (nonatomic) long timeout;
 @end
+
+/**
+ * CountryRanges represents IP ranges for a country (CIDR format)
+ */
+@interface TunnelCountryRanges : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+- (nonnull instancetype)init;
+@property (nonatomic) NSString* _Nonnull country;
+// skipped field CountryRanges.Ranges with unsupported type: []string
+
+@end
+
+/**
+ * EDNSProbeResult contains results from EDNS0 probing and NXDOMAIN hijack detection.
+ */
+@interface TunnelEDNSProbeResult : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+- (nonnull instancetype)init;
+@property (nonatomic) NSString* _Nonnull resolver;
+@property (nonatomic) BOOL supportEDNS;
+@property (nonatomic) BOOL nxdomainHijacked;
+// skipped field EDNSProbeResult.Latency with unsupported type: time.Duration
+
+@property (nonatomic) NSString* _Nonnull error;
+@end
+
+/**
+ * GeoIPScanner scans DNS resolvers in specific countries based on IP ranges
+ */
+@interface TunnelGeoIPScanner : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+/**
+ * NewGeoIPScanner creates a new geo-based IP scanner
+ */
+- (nullable instancetype)init;
+// skipped method GeoIPScanner.AddCountryRanges with unsupported parameter or return types
+
+// skipped method GeoIPScanner.FilterResolversByCountry with unsupported parameter or return types
+
+// skipped method GeoIPScanner.GetCountriesForIP with unsupported parameter or return types
+
+// skipped method GeoIPScanner.ImportRangesFromText with unsupported parameter or return types
+
+/**
+ * PopulateGlobalRanges adds major public DNS resolvers' country ranges
+This is a sample implementation - in production, you'd fetch from RIPE NCC or APNIC
+ */
+- (BOOL)populateGlobalRanges:(NSError* _Nullable* _Nullable)error;
+// skipped method GeoIPScanner.ScanResolversInCountry with unsupported parameter or return types
+
+@end
+
+/**
+ * PrismMode implements HMAC-authenticated server verification
+This prevents man-in-the-middle attacks by verifying tunnel server identity
+ */
+@interface TunnelPrismMode : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+/**
+ * NewPrismMode creates a new Prism mode verifier
+sharedSecret: HMAC-SHA256 shared secret between client and server
+serverID: identifier for the server (can be its domain or IP)
+ */
+- (nullable instancetype)init:(NSString* _Nullable)sharedSecret serverID:(NSString* _Nullable)serverID;
+// skipped method PrismMode.AuthenticateServer with unsupported parameter or return types
+
+/**
+ * GenerateAuthToken generates an HMAC-authenticated token
+nonce: unique identifier (timestamp or random string)
+data: data to authenticate
+ */
+- (NSString* _Nonnull)generateAuthToken:(NSString* _Nullable)nonce data:(NSString* _Nullable)data;
+/**
+ * NewChallenge creates a new challenge for server verification
+ */
+- (TunnelChallengeResponse* _Nullable)newChallenge:(NSString* _Nullable)nonce;
+/**
+ * SessionKey generates a session-specific encryption key
+This key is derived from the HMAC shared secret and can be used for
+encrypting the tunnel data
+ */
+- (NSData* _Nullable)sessionKey:(NSString* _Nullable)sessionID;
+/**
+ * VerifyAuthToken verifies an HMAC token from the server
+Returns true if token is valid and within time window
+ */
+- (BOOL)verifyAuthToken:(NSString* _Nullable)token nonce:(NSString* _Nullable)nonce data:(NSString* _Nullable)data;
+@end
+
+/**
+ * ServerAuthInfo contains authentication information for a server
+ */
+@interface TunnelServerAuthInfo : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+- (nonnull instancetype)init;
+@property (nonatomic) NSString* _Nonnull serverID;
+@property (nonatomic) NSString* _Nonnull sharedSecret;
+@property (nonatomic) NSString* _Nonnull publicKey;
+@property (nonatomic) NSString* _Nonnull certFingerprint;
+@end
+
+/**
+ * TunnelTestResult contains results from end-to-end tunnel testing
+ */
+@interface TunnelTunnelTestResult : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+- (nonnull instancetype)init;
+@property (nonatomic) NSString* _Nonnull resolver;
+@property (nonatomic) BOOL reachabilityOK;
+@property (nonatomic) BOOL ednsok;
+@property (nonatomic) BOOL tunnelOK;
+@property (nonatomic) BOOL dnsResolutionOK;
+@property (nonatomic) NSString* _Nonnull testDomain;
+// skipped field TunnelTestResult.Latency with unsupported type: time.Duration
+
+@property (nonatomic) double throughputBps;
+@property (nonatomic) double packetLoss;
+@property (nonatomic) NSString* _Nonnull error;
+@end
+
+/**
+ * TunnelTester performs end-to-end tunnel testing through DNS resolvers
+ */
+@interface TunnelTunnelTester : NSObject <goSeqRefInterface> {
+}
+@property(strong, readonly) _Nonnull id _ref;
+
+- (nonnull instancetype)initWithRef:(_Nonnull id)ref;
+// skipped constructor TunnelTester.NewTunnelTester with unsupported parameter or return types
+
+// skipped method TunnelTester.ParallelTestResolvers with unsupported parameter or return types
+
+// skipped method TunnelTester.TestResolver with unsupported parameter or return types
+
+@end
+
+// skipped function EDNSScore with unsupported parameter or return types
+
+
+/**
+ * FilterResolversByCountry returns a comma-separated list containing only
+those resolvers whose IP address falls within the known IP ranges for the
+given country code (e.g. "US", "DE", "NL").
+
+If no ranges are known for the country, or the scanner fails to initialise,
+the original list is returned unchanged.
+ */
+FOUNDATION_EXPORT NSString* _Nonnull TunnelFilterResolversByCountry(NSString* _Nullable resolversCSV, NSString* _Nullable country);
 
 /**
  * IsRunning reports whether a tunnel is currently active.
@@ -74,6 +282,42 @@ Reserved for future use; currently always returns "".
 FOUNDATION_EXPORT NSString* _Nonnull TunnelLastError(void);
 
 /**
+ * NewGeoIPScanner creates a new geo-based IP scanner
+ */
+FOUNDATION_EXPORT TunnelGeoIPScanner* _Nullable TunnelNewGeoIPScanner(void);
+
+/**
+ * NewPrismMode creates a new Prism mode verifier
+sharedSecret: HMAC-SHA256 shared secret between client and server
+serverID: identifier for the server (can be its domain or IP)
+ */
+FOUNDATION_EXPORT TunnelPrismMode* _Nullable TunnelNewPrismMode(NSString* _Nullable sharedSecret, NSString* _Nullable serverID);
+
+// skipped function NewTunnelTester with unsupported parameter or return types
+
+
+// skipped function ProbeEDNS with unsupported parameter or return types
+
+
+/**
+ * ScanResolver performs a complete end-to-end quality test of a single DNS
+resolver. It runs: TCP/UDP reachability, EDNS0 probe, DNS resolution, and
+a 10-probe packet-loss / throughput measurement.
+
+Returns a JSON object string with keys:
+
+	reachabilityOK  bool
+	ednsOK          bool
+	tunnelOK        bool
+	dnsResolutionOK bool
+	latencyMs       int64
+	throughputBps   float64
+	packetLoss      float64
+	error           string  (empty on success)
+ */
+FOUNDATION_EXPORT NSString* _Nonnull TunnelScanResolver(NSString* _Nullable resolver, NSString* _Nullable domain, int64_t timeoutSec);
+
+/**
  * Start parses configJSON, launches the appropriate transport, and returns the
 local SOCKS5 port that Tun2Socks should connect to.
 Returns -1 on error.
@@ -84,5 +328,17 @@ FOUNDATION_EXPORT long TunnelStart(NSString* _Nullable configJSON);
  * Stop shuts down the active tunnel.
  */
 FOUNDATION_EXPORT void TunnelStop(void);
+
+/**
+ * VerifyPrismServer tests whether the DNS resolver leads to a Prism-mode
+authenticated tunnel server. The client:
+ 1. Generates a random nonce.
+ 2. Computes clientToken = HMAC-SHA256(sharedSecret, serverID|nonce|"challenge-response-v1").
+ 3. Sends a DNS TXT query for "_prism-<nonce8>.<domain>" to the resolver.
+ 4. Looks for a TXT record matching "prism-v1:<serverHmac>" where
+    serverHmac = HMAC-SHA256(sharedSecret, serverID|nonce|"auth-response").
+ 5. Returns true only if the server's HMAC matches.
+ */
+FOUNDATION_EXPORT BOOL TunnelVerifyPrismServer(NSString* _Nullable resolver, NSString* _Nullable domain, NSString* _Nullable sharedSecret, NSString* _Nullable serverID, int64_t timeoutSec);
 
 #endif

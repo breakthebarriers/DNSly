@@ -67,7 +67,7 @@ DNSly supports multiple tunnel types with optional chaining:
 - **SSH Cipher Selection**: Choose between AES-256-GCM, AES-128-GCM, and ChaCha20-Poly1305
 - **Multiple Profiles**: Create and manage multiple server configurations
 - **QR Import/Export**: Share profiles as QR codes — useful when internet is restricted
-- **Encrypted Profiles**: Password-protect profiles with AES-256-CBC encryption
+- **Encrypted Profiles**: Password-protect profile exports with AES-256-CBC encryption; also import upstream `slipnet-enc://` AES-256-GCM payloads
 - **DNS Scanner**: Parallel resolver latency testing to find the fastest working DNS server
 - **Real-time Stats**: Live bytes in/out, uptime, and latency tracking
 - **Profile Server**: Built-in Go HTTP server for distributing profiles to devices
@@ -142,7 +142,18 @@ Profiles are exported in two formats:
 slipnet://tunnelType@host:port?name=...&domain=...&dnsTransport=...&...
 ```
 
-**Encrypted (AES-256-CBC):**
+**Encrypted (SlipNet official AES-256-GCM):**
+```
+slipnet-enc://BASE64_DATA
+```
+`BASE64_DATA` decodes to raw bytes:
+- version byte: `0x01`
+- IV: 12-byte AES-GCM nonce
+- ciphertext + tag: the remaining bytes are AES-GCM ciphertext followed by a 16-byte authentication tag
+
+The payload is decrypted with AES-256-GCM using SlipNet's built-in 32-byte application key. In this official format, the password is not used to derive the AES key; it is only a usage-control check in the SlipNet app.
+
+**Legacy app-encrypted export:**
 ```
 slipnet-enc://base64(envelope)
 
@@ -152,11 +163,10 @@ envelope = {
   "ct": "<base64 AES-256-CBC ciphertext>",
   "meta": { name, server, domain, ... }   ← plaintext preview fields
 }
-
-Key derivation: SHA256(password) → 32-byte AES key
 ```
+Key derivation: `SHA256(password)` → 32-byte AES key
 
-The `meta` field allows import preview without the password. Full decryption requires the correct password.
+This repository supports both the official upstream `slipnet-enc://` AES-256-GCM format and the legacy password-protected envelope format.
 
 ## Requirements
 

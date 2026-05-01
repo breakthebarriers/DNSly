@@ -17,6 +17,7 @@ import 'widgets/record_type_picker.dart';
 import 'widgets/section_header.dart';
 import 'widgets/tunnel_picker.dart';
 import 'export_sheet.dart';
+import '../../widgets/ssh_transport_options.dart';
 
 class ProfileEditorScreen extends StatefulWidget {
   final Profile? profile;
@@ -66,6 +67,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
   late ConnectionMethod _connectionMethod;
   late DnsRecordType _recordType;
   late bool _compression;
+  late Profile _dpiProfile;
 
   @override
   void initState() {
@@ -109,6 +111,11 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
             : ConnectionMethod.socks);
     _recordType = p?.recordType ?? DnsRecordType.txt;
     _compression = p?.compression ?? false;
+    _dpiProfile = p ?? const Profile(
+      id: '', name: '', tunnelType: TunnelType.ssh,
+      server: '', port: 22, domain: '', dnsResolver: '1.1.1.1',
+      dnsTransport: DnsTransport.classic,
+    );
   }
 
   @override
@@ -363,7 +370,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                         controller: _sshUserCtrl,
                         placeholder: 'root',
                         icon: CupertinoIcons.person,
-                        enabled: !_isLocked,
+                        enabled: true,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -380,7 +387,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                     placeholder: 'Password',
                     icon: CupertinoIcons.lock,
                     obscureText: true,
-                    enabled: !_isLocked,
+                    enabled: true,
                   )
                 else
                   FormFieldTile(
@@ -389,11 +396,17 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                     placeholder: 'Paste SSH private key...',
                     icon: CupertinoIcons.doc_text,
                     maxLines: 4,
-                    enabled: !_isLocked,
+                    enabled: true,
                   ),
                 const SizedBox(height: 12),
                 _buildCipherPicker(),
-                const SizedBox(height: 28),
+                const SizedBox(height: 16),
+                SshTransportOptionsWidget(
+                  profile: _dpiProfile,
+                  onProfileChanged: (updated) =>
+                      setState(() => _dpiProfile = updated),
+                ),
+                const SizedBox(height: 12),
               ] else ...[
                 const SectionHeader(title: 'SOCKS5 Credentials (Optional)'),
                 const SizedBox(height: 8),
@@ -402,7 +415,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                   controller: _socksUserCtrl,
                   placeholder: 'Username',
                   icon: CupertinoIcons.person,
-                  enabled: !_isLocked,
+                  enabled: true,
                 ),
                 const SizedBox(height: 12),
                 FormFieldTile(
@@ -411,7 +424,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                   placeholder: 'Password',
                   icon: CupertinoIcons.lock,
                   obscureText: true,
-                  enabled: !_isLocked,
+                  enabled: true,
                 ),
                 const SizedBox(height: 28),
               ],
@@ -713,7 +726,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           final selected = m == _sshAuthType;
           return Expanded(
             child: GestureDetector(
-              onTap: _isLocked ? null : () => setState(() => _sshAuthType = m),
+              onTap: () => setState(() => _sshAuthType = m),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -912,16 +925,17 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     final effectiveTunnelType = _applyMethodToTunnelType(_tunnelType, _connectionMethod);
     final profile = _isLocked && _currentProfile != null
         ? _currentProfile!.copyWith(
-            dnsTransport: _dnsTransport,
-            dnsResolver: _resolverCtrl.text.trim(),
-            recordType: _recordType,
-            queryLength: int.tryParse(_queryLengthCtrl.text) ?? 101,
-            connectionMethod: _connectionMethod,
-            queryRateLimit: int.tryParse(_queryRateLimitCtrl.text) ?? 0,
-            idleTimeout: _idleTimeoutCtrl.text.isNotEmpty ? int.tryParse(_idleTimeoutCtrl.text) : null,
-            udpTimeout: _udpTimeoutCtrl.text.isNotEmpty ? int.tryParse(_udpTimeoutCtrl.text) : null,
-            maxLabels: _maxLabelsCtrl.text.isNotEmpty ? int.tryParse(_maxLabelsCtrl.text) : null,
-            clientIdSize: int.tryParse(_clientIdSizeCtrl.text) ?? 2,
+            // Credential fields are always editable, even for locked profiles.
+            sshUser: _sshUserCtrl.text.trim().isNotEmpty ? _sshUserCtrl.text.trim() : null,
+            sshPassword: _sshAuthType == SshAuthType.password && _sshPassCtrl.text.isNotEmpty
+                ? _sshPassCtrl.text
+                : null,
+            sshKey: _sshAuthType == SshAuthType.key && _sshKeyCtrl.text.isNotEmpty
+                ? _sshKeyCtrl.text
+                : null,
+            sshAuthType: _sshAuthType,
+            socksUser: _socksUserCtrl.text.trim().isNotEmpty ? _socksUserCtrl.text.trim() : null,
+            socksPassword: _socksPassCtrl.text.isNotEmpty ? _socksPassCtrl.text : null,
           )
         : Profile(
             id: widget.profile?.id ?? const Uuid().v4(),
@@ -948,6 +962,16 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
             sshKey: _showSsh && _sshAuthType == SshAuthType.key ? _sshKeyCtrl.text : null,
             sshCipher: _showSsh ? _sshCipher : null,
             sshAuthType: _sshAuthType,
+            sshTlsEnabled: _showSsh ? _dpiProfile.sshTlsEnabled : false,
+            sshTlsSni: _showSsh ? _dpiProfile.sshTlsSni : null,
+            sshWsEnabled: _showSsh ? _dpiProfile.sshWsEnabled : false,
+            sshWsPath: _showSsh ? _dpiProfile.sshWsPath : null,
+            sshWsUseTls: _showSsh ? _dpiProfile.sshWsUseTls : false,
+            sshWsHost: _showSsh ? _dpiProfile.sshWsHost : null,
+            sshHttpProxyHost: _showSsh ? _dpiProfile.sshHttpProxyHost : null,
+            sshHttpProxyPort: _showSsh ? _dpiProfile.sshHttpProxyPort : null,
+            sshHttpProxyHostHdr: _showSsh ? _dpiProfile.sshHttpProxyHostHdr : null,
+            sshPayload: _showSsh ? _dpiProfile.sshPayload : null,
             socksUser: !_showSsh ? _socksUserCtrl.text.trim() : null,
             socksPassword: !_showSsh ? _socksPassCtrl.text : null,
             compression: _compression,

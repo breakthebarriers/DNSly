@@ -99,7 +99,7 @@ class _ExportSheetState extends State<ExportSheet> {
             CupertinoTextField(
               controller: _passwordCtrl,
               obscureText: true,
-              placeholder: 'Password for slipnet-enc://',
+              placeholder: 'Password for encrypted export',
               padding: const EdgeInsets.all(10),
               onChanged: (_) => setState(() {}),
             ),

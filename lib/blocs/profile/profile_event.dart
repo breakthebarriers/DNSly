@@ -99,3 +99,11 @@ class ProfileImportedEncrypted extends ProfileEvent {
   @override
   List<Object?> get props => [encryptedUri, password];
 }
+
+class ProfileDeletedDuplicates extends ProfileEvent {
+  const ProfileDeletedDuplicates();
+}
+
+class ProfileDeletedAll extends ProfileEvent {
+  const ProfileDeletedAll();
+}

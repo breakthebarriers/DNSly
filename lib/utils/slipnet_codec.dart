@@ -5,8 +5,15 @@ import 'package:cryptography/cryptography.dart';
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:pointycastle/export.dart';
 import '../models/profile.dart';
+import 'enc_key.dart';
 
 class SlipnetCodec {
+  /// Supports both:
+  /// 1. The official SlipNet upstream `slipnet-enc://` format:
+  ///    base64([version=0x01][iv=12][ciphertext+tag]) with AES-256-GCM and
+  ///    a built-in static app key.
+  /// 2. The legacy app-export envelope format used by older versions:
+  ///    JSON `{v, iv, ct, meta}` with AES-256-CBC and password-derived key.
   static const _plainScheme = 'slipnet';
   static const _encScheme = 'slipnet-enc';
   static const int _encFormatVersion = 0x01;
@@ -70,6 +77,9 @@ class SlipnetCodec {
   }
 
   /// Profile + password -> slipnet-enc://BASE64
+  ///
+  /// This is the app's legacy encrypted export format. It is not the same as
+  /// the upstream SlipNet raw AES-256-GCM format.
   static String encodeEncrypted(Profile profile, String password) {
     final normalizedPassword = password.trim();
     if (normalizedPassword.isEmpty) {
@@ -107,6 +117,11 @@ class SlipnetCodec {
   }
 
   /// slipnet-enc://BASE64 + password → Profile
+  ///
+  /// This method supports both the app's legacy AES-256-CBC envelope format
+  /// and the upstream SlipNet AES-256-GCM raw blob format.
+  /// For upstream format, the `password` argument may instead be the 64-digit
+  /// hex key used by the official SlipNet app.
   static Profile? decodeEncrypted(String uri, String password) {
     try {
       if (!uri.startsWith('$_encScheme://')) return null;
@@ -184,6 +199,69 @@ class SlipnetCodec {
       out[i] = int.parse(byteStr, radix: 16);
     }
     return out;
+  }
+
+  /// slipnet-enc://BASE64 → fully-populated Profile using the embedded app key.
+  ///
+  /// Decrypts the upstream SlipNet AES-256-GCM blob using [kSlipnetEncKeyHex]
+  /// from enc_key.dart. Returns null if the key is the all-zeros placeholder
+  /// or if decryption fails.
+  static Profile? decodeWithEmbeddedKey(String uri) {
+    final keyBytes = slipnetEncKey();
+    if (keyBytes == null) return null;
+    return _decodeRawBytes(uri, Uint8List.fromList(keyBytes));
+  }
+
+  /// Internal: decrypt with a concrete 32-byte key and parse the pipe format.
+  static Profile? _decodeRawBytes(String uri, Uint8List key32) {
+    try {
+      final payload = uri.substring('$_encScheme://'.length);
+      final data = _decodeBase64Flexible(payload);
+      if (data.isEmpty || data[0] != _encFormatVersion) return null;
+      final minLen = 1 + _gcmIvLength + _gcmTagLength;
+      if (data.length < minLen) return null;
+
+      final iv = data.sublist(1, 1 + _gcmIvLength);
+      final cipherAndTag = data.sublist(1 + _gcmIvLength);
+
+      final gcm = GCMBlockCipher(AESEngine())
+        ..init(
+          false,
+          AEADParameters(
+            KeyParameter(key32),
+            _gcmTagLength * 8,
+            iv,
+            Uint8List(0),
+          ),
+        );
+
+      final out = Uint8List(gcm.getOutputSize(cipherAndTag.length));
+      final len = gcm.processBytes(cipherAndTag, 0, cipherAndTag.length, out, 0);
+      gcm.doFinal(out, len);
+
+      final plaintext = utf8.decode(out);
+      return _parsePlaintext(plaintext);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Parses decrypted plaintext (pipe-delimited or slipnet:// URI) into a Profile.
+  static Profile? _parsePlaintext(String plaintext) {
+    // May be a plain slipnet:// URI
+    if (plaintext.startsWith('slipnet://')) {
+      return Profile.fromSlipnetUri(plaintext);
+    }
+    // Pipe-delimited upstream format
+    if (plaintext.contains('|')) {
+      return Profile.fromPipeFormat(plaintext);
+    }
+    // Try JSON
+    try {
+      final json = jsonDecode(plaintext) as Map<String, dynamic>;
+      return Profile.fromJson(json);
+    } catch (_) {}
+    return null;
   }
 
   /// slipnet-enc://BASE64 → Profile metadata (no password).

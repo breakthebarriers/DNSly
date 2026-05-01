@@ -101,6 +101,18 @@ class Profile {
   final SshCipher? sshCipher;
   final SshAuthType sshAuthType;
 
+  // DPI Bypass SSH options
+  final bool sshTlsEnabled;
+  final String? sshTlsSni;
+  final bool sshWsEnabled;
+  final String? sshWsPath;
+  final bool sshWsUseTls;
+  final String? sshWsHost;
+  final String? sshHttpProxyHost;
+  final int? sshHttpProxyPort;
+  final String? sshHttpProxyHostHdr;
+  final String? sshPayload;
+
   final String? socksUser;
   final String? socksPassword;
 
@@ -137,6 +149,16 @@ class Profile {
     this.sshKey,
     this.sshCipher,
     this.sshAuthType = SshAuthType.password,
+    this.sshTlsEnabled = false,
+    this.sshTlsSni,
+    this.sshWsEnabled = false,
+    this.sshWsPath,
+    this.sshWsUseTls = false,
+    this.sshWsHost,
+    this.sshHttpProxyHost,
+    this.sshHttpProxyPort,
+    this.sshHttpProxyHostHdr,
+    this.sshPayload,
     this.socksUser,
     this.socksPassword,
     this.compression = false,
@@ -171,6 +193,16 @@ class Profile {
     String? sshKey,
     SshCipher? sshCipher,
     SshAuthType? sshAuthType,
+    bool? sshTlsEnabled,
+    String? sshTlsSni,
+    bool? sshWsEnabled,
+    String? sshWsPath,
+    bool? sshWsUseTls,
+    String? sshWsHost,
+    String? sshHttpProxyHost,
+    int? sshHttpProxyPort,
+    String? sshHttpProxyHostHdr,
+    String? sshPayload,
     String? socksUser,
     String? socksPassword,
     bool? compression,
@@ -204,6 +236,16 @@ class Profile {
       sshKey: sshKey ?? this.sshKey,
       sshCipher: sshCipher ?? this.sshCipher,
       sshAuthType: sshAuthType ?? this.sshAuthType,
+      sshTlsEnabled: sshTlsEnabled ?? this.sshTlsEnabled,
+      sshTlsSni: sshTlsSni ?? this.sshTlsSni,
+      sshWsEnabled: sshWsEnabled ?? this.sshWsEnabled,
+      sshWsPath: sshWsPath ?? this.sshWsPath,
+      sshWsUseTls: sshWsUseTls ?? this.sshWsUseTls,
+      sshWsHost: sshWsHost ?? this.sshWsHost,
+      sshHttpProxyHost: sshHttpProxyHost ?? this.sshHttpProxyHost,
+      sshHttpProxyPort: sshHttpProxyPort ?? this.sshHttpProxyPort,
+      sshHttpProxyHostHdr: sshHttpProxyHostHdr ?? this.sshHttpProxyHostHdr,
+      sshPayload: sshPayload ?? this.sshPayload,
       socksUser: socksUser ?? this.socksUser,
       socksPassword: socksPassword ?? this.socksPassword,
       compression: compression ?? this.compression,
@@ -239,6 +281,16 @@ class Profile {
     'sshKey': sshKey,
     'sshCipher': sshCipher?.name,
     'sshAuthType': sshAuthType.name,
+    'sshTlsEnabled': sshTlsEnabled,
+    'sshTlsSni': sshTlsSni,
+    'sshWsEnabled': sshWsEnabled,
+    'sshWsPath': sshWsPath,
+    'sshWsUseTls': sshWsUseTls,
+    'sshWsHost': sshWsHost,
+    'sshHttpProxyHost': sshHttpProxyHost,
+    'sshHttpProxyPort': sshHttpProxyPort,
+    'sshHttpProxyHostHdr': sshHttpProxyHostHdr,
+    'sshPayload': sshPayload,
     'socksUser': socksUser,
     'socksPassword': socksPassword,
     'compression': compression,
@@ -296,6 +348,16 @@ class Profile {
         (a) => a.name == json['sshAuthType'],
         orElse: () => SshAuthType.password,
       ),
+      sshTlsEnabled: json['sshTlsEnabled'] as bool? ?? false,
+      sshTlsSni: json['sshTlsSni'] as String?,
+      sshWsEnabled: json['sshWsEnabled'] as bool? ?? false,
+      sshWsPath: json['sshWsPath'] as String?,
+      sshWsUseTls: json['sshWsUseTls'] as bool? ?? false,
+      sshWsHost: json['sshWsHost'] as String?,
+      sshHttpProxyHost: json['sshHttpProxyHost'] as String?,
+      sshHttpProxyPort: json['sshHttpProxyPort'] as int?,
+      sshHttpProxyHostHdr: json['sshHttpProxyHostHdr'] as String?,
+      sshPayload: json['sshPayload'] as String?,
       socksUser: json['socksUser'] as String?,
       socksPassword: json['socksPassword'] as String?,
       compression: json['compression'] as bool? ?? false,
@@ -312,6 +374,51 @@ class Profile {
   }
 
   // ─── Slipnet URI export ───
+  String duplicateKey() {
+    final normalized = {
+      'tunnelType': tunnelType.name,
+      'server': server,
+      'port': port,
+      'domain': domain,
+      'password': password,
+      'dnsResolver': dnsResolver,
+      'dnsTransport': dnsTransport.name,
+      'recordType': recordType.name,
+      'queryLength': queryLength,
+      'connectionMethod': connectionMethod.name,
+      'sshHost': sshHost,
+      'sshPort': sshPort,
+      'sshUser': sshUser,
+      'sshPassword': sshPassword,
+      'sshKey': sshKey,
+      'sshCipher': sshCipher?.name,
+      'sshAuthType': sshAuthType.name,
+      'sshTlsEnabled': sshTlsEnabled,
+      'sshTlsSni': sshTlsSni,
+      'sshWsEnabled': sshWsEnabled,
+      'sshWsPath': sshWsPath,
+      'sshWsUseTls': sshWsUseTls,
+      'sshWsHost': sshWsHost,
+      'sshHttpProxyHost': sshHttpProxyHost,
+      'sshHttpProxyPort': sshHttpProxyPort,
+      'sshHttpProxyHostHdr': sshHttpProxyHostHdr,
+      'sshPayload': sshPayload,
+      'socksUser': socksUser,
+      'socksPassword': socksPassword,
+      'compression': compression,
+      'mtu': mtu,
+      'timeout': timeout,
+      'queryRateLimit': queryRateLimit,
+      'idleTimeout': idleTimeout,
+      'udpTimeout': udpTimeout,
+      'maxLabels': maxLabels,
+      'clientIdSize': clientIdSize,
+      'isLocked': isLocked,
+      'encryptedUri': encryptedUri,
+    };
+    return jsonEncode(normalized);
+  }
+
   String toSlipnetUri() {
     final params = {
       'name': name,
@@ -537,6 +644,169 @@ class Profile {
       sshPassword: needsSsh ? sshPassword : null,
       mtu: localSocksPort,
       timeout: keepAlive,
+      isLocked: false,
+    );
+  }
+
+  // ─── Public pipe-format parser (used by SlipnetCodec decryption path) ────
+
+  /// Parses the upstream SlipNet pipe-delimited plaintext format into a Profile.
+  ///
+  /// Field layout (0-based indices, '|' separated):
+  ///  0  version (e.g. "v16", "v20")
+  ///  1  tunnelType
+  ///  2  name
+  ///  3  domain
+  ///  4  resolvers  (comma-separated host:port)
+  ///  5  authMode   ("1" = auth required)
+  ///  6  keepAlive  (seconds, int)
+  ///  7  reserved
+  ///  8  localSocksPort / mtu
+  ///  9  reserved
+  /// 10  reserved
+  /// 11  password / publicKey
+  /// 12  reserved
+  /// 13  socksPassword
+  /// 14  sshEnabled ("1")
+  /// 15  sshUser
+  /// 16  sshPassword
+  /// 17  sshPort
+  /// 18  reserved
+  /// 19  sshHost
+  /// 20  reserved
+  /// 21  dohUrl
+  /// 22  dnsTransport ("doh","dot","tcp","")
+  /// 23  recordType  ("TXT","A","CNAME",...)
+  /// 24  queryLength (int)
+  /// 25  compression ("1")
+  /// 26  queryRateLimit (int)
+  /// 27  idleTimeout (int)
+  /// 28  udpTimeout  (int)
+  /// 29  maxLabels   (int)
+  /// 30  clientIdSize (int)
+  static Profile? fromPipeFormat(String pipe) {
+    final f = pipe.split('|');
+    if (f.length < 4) return null;
+
+    String field(int i, [String def = '']) =>
+        (f.length > i && f[i].trim().isNotEmpty) ? f[i].trim() : def;
+    int? fieldInt(int i) => int.tryParse(field(i));
+    bool fieldBool(int i) => field(i) == '1';
+
+    // Version check: accept v16+ or numeric >= 16
+    final verStr = field(0);
+    final vNum = verStr.startsWith('v')
+        ? int.tryParse(verStr.substring(1))
+        : int.tryParse(verStr);
+    if (vNum != null && vNum < 16) return null;
+
+    final tunnelTypeRaw = field(1).toLowerCase();
+    final name = field(2, 'Imported');
+    final domain = field(3);
+    final resolversRaw = field(4, '1.1.1.1');
+    final authMode = fieldBool(5);
+    final keepAlive = fieldInt(6);
+    // f[7] reserved
+    final mtu = fieldInt(8);
+    // f[9], f[10] reserved
+    final password = field(11).isNotEmpty ? field(11) : null;
+    // f[12] reserved
+    final socksPassword = field(13).isNotEmpty ? field(13) : null;
+    final sshEnabled = fieldBool(14);
+    final sshUser = field(15).isNotEmpty ? field(15) : null;
+    final sshPassword = field(16).isNotEmpty ? field(16) : null;
+    final sshPort = fieldInt(17);
+    // f[18] reserved
+    final sshHost = field(19).isNotEmpty ? field(19) : null;
+    // f[20] reserved
+    final dohUrl = field(21).isNotEmpty ? field(21) : null;
+    final dnsTransportRaw = field(22).toLowerCase();
+    final recordTypeRaw = field(23, 'TXT').toUpperCase();
+    final queryLength = fieldInt(24) ?? 101;
+    final compression = fieldBool(25);
+    final queryRateLimit = fieldInt(26) ?? 0;
+    final idleTimeout = fieldInt(27);
+    final udpTimeout = fieldInt(28);
+    final maxLabels = fieldInt(29);
+    final clientIdSize = fieldInt(30) ?? 2;
+
+    // Resolve DNS transport
+    final DnsTransport dnsTransport;
+    switch (dnsTransportRaw) {
+      case 'https':
+      case 'doh':
+        dnsTransport = DnsTransport.doh;
+        break;
+      case 'tls':
+      case 'dot':
+        dnsTransport = DnsTransport.dot;
+        break;
+      case 'tcp':
+        dnsTransport = DnsTransport.tcp;
+        break;
+      default:
+        dnsTransport = DnsTransport.classic;
+    }
+
+    // Resolve tunnel type
+    final TunnelType tunnelType;
+    if (tunnelTypeRaw == 'ssh') {
+      tunnelType = TunnelType.ssh;
+    } else if (tunnelTypeRaw == 'socks5') {
+      tunnelType = TunnelType.socks5;
+    } else if (tunnelTypeRaw.endsWith('_ssh') || sshEnabled) {
+      tunnelType = TunnelType.vayDnsSsh;
+    } else if (tunnelTypeRaw.endsWith('_socks') ||
+        tunnelTypeRaw.contains('socks')) {
+      tunnelType = TunnelType.vayDnsSocks;
+    } else {
+      tunnelType = TunnelType.vayDns;
+    }
+
+    // Pick the first resolver host
+    final firstResolverHost = resolversRaw
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .map((s) => s.split(':').first)
+        .firstWhere((_) => true, orElse: () => '1.1.1.1');
+
+    final dnsResolver =
+        (dnsTransport == DnsTransport.doh && dohUrl != null)
+            ? dohUrl
+            : firstResolverHost;
+
+    final needsSsh =
+        tunnelType == TunnelType.vayDnsSsh || tunnelType == TunnelType.ssh;
+
+    return Profile(
+      id: const Uuid().v4(),
+      name: name,
+      tunnelType: tunnelType,
+      server: needsSsh ? (sshHost ?? domain) : domain,
+      port: 53,
+      domain: domain,
+      password: password ?? (authMode ? 'auth' : null),
+      dnsResolver: dnsResolver,
+      dnsTransport: dnsTransport,
+      recordType: DnsRecordType.fromString(recordTypeRaw),
+      queryLength: queryLength,
+      connectionMethod:
+          needsSsh ? ConnectionMethod.ssh : ConnectionMethod.socks,
+      sshHost: needsSsh ? (sshHost ?? domain) : null,
+      sshPort: needsSsh ? (sshPort ?? 22) : null,
+      sshUser: sshUser,
+      sshPassword: sshPassword,
+      socksUser: null,
+      socksPassword: socksPassword,
+      compression: compression,
+      mtu: mtu,
+      timeout: keepAlive,
+      queryRateLimit: queryRateLimit,
+      idleTimeout: idleTimeout,
+      udpTimeout: udpTimeout,
+      maxLabels: maxLabels,
+      clientIdSize: clientIdSize,
       isLocked: false,
     );
   }

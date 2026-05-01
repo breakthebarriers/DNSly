@@ -21,6 +21,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<EncryptedProfileUnlockRequested>(_onEncryptedUnlockRequested);
     on<ImportErrorCleared>(_onImportErrorCleared);
     on<ProfileImportedEncrypted>(_onImportedEncrypted);
+    on<ProfileDeletedDuplicates>(_onDeletedDuplicates);
+    on<ProfileDeletedAll>(_onDeletedAll);
   }
 
   Future<void> _onLoaded(
@@ -116,24 +118,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           }
 
           final profile = uri.startsWith('slipnet-enc://')
-              ? ((SlipnetCodec.decodeEncryptedMeta(uri) ??
-                      Profile(
-                        id: const Uuid().v4(),
-                        name: _fallbackEncryptedName(uri),
-                        tunnelType: TunnelType.vayDns,
-                        server: '',
-                        port: AppDefaults.defaultDnsPort,
-                        domain: '',
-                        dnsResolver: AppDefaults.defaultResolvers.first,
-                        dnsTransport: DnsTransport.classic,
-                        isLocked: true,
-                        encryptedUri: uri,
-                      ))
-                  .copyWith(
+              ? (
+                  // 1. Try decryption with the embedded app key (upstream format).
+                  SlipnetCodec.decodeWithEmbeddedKey(uri) ??
+                  // 2. Try the app's own CBC envelope (has plaintext meta block).
+                  SlipnetCodec.decodeEncryptedMeta(uri) ??
+                  // 3. Fallback: locked stub — user can unlock with password later.
+                  Profile(
+                    id: const Uuid().v4(),
+                    name: _fallbackEncryptedName(uri),
+                    tunnelType: TunnelType.vayDns,
+                    server: '',
+                    port: AppDefaults.defaultDnsPort,
+                    domain: '',
+                    dnsResolver: AppDefaults.defaultResolvers.first,
+                    dnsTransport: DnsTransport.classic,
+                    isLocked: true,
+                    encryptedUri: uri,
+                  )
+                ).copyWith(
                   id: const Uuid().v4(),
                   isLocked: true,
                   encryptedUri: uri,
-                ))
+                )
               : (SlipnetCodec.decode(uri) ?? Profile.fromSlipnetUri(uri));
           imported.add(profile);
         } catch (e) {
@@ -214,5 +221,60 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) {
     emit(state.copyWith(clearImportError: true, clearErrorMessage: true));
+  }
+
+  Future<void> _onDeletedDuplicates(
+    ProfileDeletedDuplicates event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      final unique = <String, Profile>{};
+      for (final profile in state.profiles) {
+        unique.putIfAbsent(profile.duplicateKey(), () => profile);
+      }
+      final deduped = unique.values.toList();
+      if (deduped.length == state.profiles.length) {
+        emit(state.copyWith(
+          status: ProfileStatus.loaded,
+          errorMessage: 'No duplicate profiles found.',
+        ));
+        return;
+      }
+
+      await repository.saveAll(deduped);
+      emit(state.copyWith(
+        status: ProfileStatus.loaded,
+        profiles: deduped,
+        activeProfile: deduped.any((p) => p.id == state.activeProfile?.id)
+            ? state.activeProfile
+            : null,
+        clearErrorMessage: true,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: ProfileStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onDeletedAll(
+    ProfileDeletedAll event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      await repository.deleteAll();
+      emit(state.copyWith(
+        status: ProfileStatus.loaded,
+        profiles: const [],
+        activeProfile: null,
+        clearErrorMessage: true,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: ProfileStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
   }
 }

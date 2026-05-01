@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -51,6 +52,77 @@ class VPNPlatformService {
       'packetsOut': (result['packetsOut'] as num?)?.toInt() ?? 0,
       'uptimeSec': (result['uptimeSec'] as num?)?.toInt() ?? 0,
     };
+  }
+
+  /// Runs a full E2E quality test on [resolver] via the Go tunnel engine.
+  /// Returns a map with keys: reachabilityOK, ednsOK, tunnelOK,
+  /// dnsResolutionOK, latencyMs, throughputBps, packetLoss, error.
+  /// Returns null on non-iOS or if the call fails.
+  Future<Map<String, dynamic>?> scanResolver(
+    String resolver,
+    String domain, {
+    int timeoutSec = 5,
+  }) async {
+    if (!_isIOS) return null;
+    try {
+      final json = await _channel.invokeMethod<String>('scanResolver', {
+        'resolver': resolver,
+        'domain': domain,
+        'timeoutSec': timeoutSec,
+      });
+      if (json == null || json.isEmpty) return null;
+      return jsonDecode(json) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Verifies that [resolver] leads to a Prism-mode authenticated server.
+  /// The Go engine performs the HMAC-SHA256 challenge-response exchange.
+  Future<bool> verifyPrismServer(
+    String resolver,
+    String domain,
+    String sharedSecret,
+    String serverID, {
+    int timeoutSec = 5,
+  }) async {
+    if (!_isIOS) return false;
+    try {
+      final ok = await _channel.invokeMethod<bool>('verifyPrismServer', {
+        'resolver': resolver,
+        'domain': domain,
+        'sharedSecret': sharedSecret,
+        'serverID': serverID,
+        'timeoutSec': timeoutSec,
+      });
+      return ok ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Filters [resolvers] to only those whose IP falls within known ranges
+  /// for [country] (ISO-3166 alpha-2, e.g. "US", "DE", "NL").
+  /// Returns the original list unchanged on non-iOS or error.
+  Future<List<String>> filterResolversByCountry(
+    List<String> resolvers,
+    String country,
+  ) async {
+    if (!_isIOS) return resolvers;
+    try {
+      final csv = await _channel.invokeMethod<String>('filterByCountry', {
+        'resolvers': resolvers.join(','),
+        'country': country,
+      });
+      if (csv == null || csv.isEmpty) return [];
+      return csv
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return resolvers;
+    }
   }
 
   Stream<Map<String, String>> statusStream() {

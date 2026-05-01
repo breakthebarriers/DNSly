@@ -122,6 +122,54 @@ final class VPNMethodChannel: NSObject, FlutterPlugin {
         ])
       }
 
+    // ── Advanced DNS Scanner ──────────────────────────────────────────────────
+
+    case "scanResolver":
+      guard
+        let args = call.arguments as? [String: Any],
+        let resolver = args["resolver"] as? String,
+        let domain = args["domain"] as? String
+      else {
+        result(FlutterError(code: "bad_args", message: "resolver and domain required", details: nil))
+        return
+      }
+      let timeoutSec = Int64(args["timeoutSec"] as? Int ?? 5)
+      DispatchQueue.global(qos: .userInitiated).async {
+        let json = TunnelScanResolver(resolver, domain, timeoutSec)
+        DispatchQueue.main.async { result(json) }
+      }
+
+    case "verifyPrismServer":
+      guard
+        let args = call.arguments as? [String: Any],
+        let resolver = args["resolver"] as? String,
+        let domain = args["domain"] as? String,
+        let secret = args["sharedSecret"] as? String,
+        let serverID = args["serverID"] as? String
+      else {
+        result(FlutterError(code: "bad_args", message: "resolver, domain, sharedSecret, serverID required", details: nil))
+        return
+      }
+      let timeoutSec = Int64(args["timeoutSec"] as? Int ?? 5)
+      DispatchQueue.global(qos: .userInitiated).async {
+        let ok = TunnelVerifyPrismServer(resolver, domain, secret, serverID, timeoutSec)
+        DispatchQueue.main.async { result(ok) }
+      }
+
+    case "filterByCountry":
+      guard
+        let args = call.arguments as? [String: Any],
+        let resolversCSV = args["resolvers"] as? String,
+        let country = args["country"] as? String
+      else {
+        result(FlutterError(code: "bad_args", message: "resolvers and country required", details: nil))
+        return
+      }
+      DispatchQueue.global(qos: .userInitiated).async {
+        let filtered = TunnelFilterResolversByCountry(resolversCSV, country)
+        DispatchQueue.main.async { result(filtered) }
+      }
+
     default:
       result(FlutterMethodNotImplemented)
     }
