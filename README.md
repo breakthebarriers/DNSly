@@ -310,6 +310,21 @@ All `/v1/` routes require `Authorization: Bearer {apiKey}`.
 
 ---
 
+## Support the Project
+
+If DNSly has been useful to you, consider supporting development:
+
+<div align="center">
+
+| Bitcoin (BTC) | Tether (USDT — TRC20) |
+|:---:|:---:|
+| <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bitcoin:bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx" width="150" alt="BTC QR Code"> | <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW" width="150" alt="USDT TRC20 QR Code"> |
+| `bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx` | `TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW` |
+
+</div>
+
+---
+
 ## Project Structure
 
 ```

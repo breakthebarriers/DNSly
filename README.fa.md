@@ -318,6 +318,21 @@ GET  /v1/profiles/{id}/ios-config      → { "profileId": "...", "iosVpn": {...}
 
 ---
 
+## حمایت از پروژه
+
+اگر DNSly برایتان مفید بوده، می‌توانید از توسعه آن حمایت کنید:
+
+<div align="center">
+
+| بیت‌کوین (BTC) | تتر (USDT — TRC20) |
+|:---:|:---:|
+| <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bitcoin:bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx" width="150" alt="BTC QR Code"> | <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW" width="150" alt="USDT TRC20 QR Code"> |
+| `bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx` | `TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW` |
+
+</div>
+
+---
+
 ## ساختار پروژه
 
 </div>
