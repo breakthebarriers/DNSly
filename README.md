@@ -1,16 +1,18 @@
-# DNSly App | اپلیکیشن DNSly
+# DNSly App
 
-<div dir="rtl">
+<div align="right">
 
-**DNSly** یک کلاینت موبایل ضد سانسور است که با Flutter ساخته شده و روی مدیریت پروفایل‌های DNS/تانل تمرکز دارد. هسته‌ی تانل به Go نوشته شده، با ابزار gomobile به iOS متصل می‌شود و پروتکل‌های متعددی را پشتیبانی می‌کند.
+[🇮🇷 فارسی](README.fa.md)
 
 </div>
+
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=breakthebarriers.DNSly)
 
 **DNSly** is a Flutter-based anti-censorship mobile client focused on managing and using DNS/tunnel profiles. The tunnel core is written in Go, bridged to iOS via gomobile, and supports multiple transport protocols.
 
 ---
 
-## تصاویر / Screenshots
+## Screenshots
 
 <div align="center">
   <img src="assets/screenshots/Simulator Screenshot - DNSly - 2026-04-24 at 11.25.56.png" width="200" alt="Home Screen">
@@ -25,13 +27,7 @@
 
 ---
 
-## معماری / Architecture
-
-<div dir="rtl">
-
-ترافیک دستگاه از طریق **Tun2Socks** به یک SOCKS5 محلی هدایت می‌شود. هسته‌ی Go این ترافیک را گرفته و بسته به پروفایل انتخاب‌شده از یکی از تانل‌های زیر عبور می‌دهد:
-
-</div>
+## Architecture
 
 Device traffic is captured by **Tun2Socks** via the iOS PacketTunnel extension and routed to a local SOCKS5 listener. The Go core handles the rest:
 
@@ -50,16 +46,6 @@ Local SOCKS5 (127.0.0.1:PORT)  ← Go tunnel engine
   Tunnel   Proxy   Relay
 ```
 
-<div dir="rtl">
-
-**مدهای تانل:**
-- **VayDNS** — ترافیک TCP را در قالب DNS TXT query رمزنگاری و ارسال می‌کند.
-- **SSH Proxy** — پورت-فورواردینگ دینامیک SSH (معادل `ssh -D`).
-- **SOCKS5 Relay** — پاس‌دادن مستقیم ترافیک به یک پروکسی upstream.
-- **Hybrid** — ترکیب VayDNS با SSH یا SOCKS5 به عنوان fallback.
-
-</div>
-
 **Tunnel modes:**
 - **VayDNS** — encapsulates TCP payloads as DNS TXT queries over UDP / TCP / DoH / DoT.
 - **SSH Proxy** — dynamic SSH port forwarding equivalent to `ssh -D`.
@@ -68,13 +54,7 @@ Local SOCKS5 (127.0.0.1:PORT)  ← Go tunnel engine
 
 ---
 
-## پروتکل VayDNS / VayDNS Wire Protocol
-
-<div dir="rtl">
-
-هر اتصال TCP به یک session چهار بایتی تصادفی تبدیل می‌شود. داده‌ها به قطعه‌های حداکثر ۱۲۰ بایتی تقسیم شده، با Base32 کدگذاری می‌شوند و به عنوان QNAME در DNS ارسال می‌شوند.
-
-</div>
+## VayDNS Wire Protocol
 
 Each TCP connection is assigned a random 4-byte session ID. Data is chunked, Base32-encoded, and embedded in DNS QNAMEs:
 
@@ -110,13 +90,7 @@ Example:
 
 ---
 
-## پروفایل و کدک SlipNet / Profile & SlipNet Codec
-
-<div dir="rtl">
-
-پروفایل‌ها به دو فرمت اکسپورت می‌شوند:
-
-</div>
+## Profile & SlipNet Codec
 
 Profiles are exported in two formats:
 
@@ -139,12 +113,6 @@ envelope = {
 Key derivation: SHA256(password) → 32-byte AES key
 ```
 
-<div dir="rtl">
-
-فیلد `meta` به کاربر اجازه می‌دهد بدون وارد کردن رمز، اطلاعات کلی پروفایل را ببیند. پس از وارد کردن رمز، کل پروفایل رمزگشایی می‌شود.
-
-</div>
-
 The `meta` field allows import preview without the password. Full decryption requires the correct password.
 
 **Legacy v1 format (upstream Slipnet compatibility):**
@@ -155,13 +123,7 @@ Key: raw 64-char hex string (no derivation)
 
 ---
 
-## مدل داده / Data Model
-
-<div dir="rtl">
-
-ساختار اصلی `Profile` شامل تمام پارامترهای لازم برای هر نوع تانل است:
-
-</div>
+## Data Model
 
 The core `Profile` model covers all tunnel variants:
 
@@ -206,13 +168,7 @@ class Profile {
 
 ---
 
-## مدیریت State / State Management (BLoC)
-
-<div dir="rtl">
-
-اپلیکیشن از سه BLoC اصلی برای مدیریت state استفاده می‌کند:
-
-</div>
+## State Management (BLoC)
 
 The app uses three BLoCs:
 
@@ -269,23 +225,11 @@ States:
   DnsScannerFailure(message)
 ```
 
-<div dir="rtl">
-
-اسکنر DNS به صورت موازی به پورت ۵۳ همه‌ی resolverها وصل می‌شود و سریع‌ترین را انتخاب می‌کند.
-
-</div>
-
 The DNS scanner probes port 53 on all resolvers in parallel and selects the fastest.
 
 ---
 
 ## Go Tunnel API
-
-<div dir="rtl">
-
-API عمومی هسته‌ی Go (قابل bind با gomobile):
-
-</div>
 
 Public API of the Go tunnel engine (gomobile-bindable):
 
@@ -323,13 +267,7 @@ LastError() string
 
 ---
 
-## سرور پروفایل / Profile Server API
-
-<div dir="rtl">
-
-یک سرور HTTP ساده برای توزیع و مدیریت پروفایل‌ها، بدون وابستگی خارجی:
-
-</div>
+## Profile Server API
 
 A minimal Go HTTP server for profile distribution (zero external dependencies):
 
@@ -348,7 +286,7 @@ All `/v1/` routes require `Authorization: Bearer {apiKey}`.
 
 ---
 
-## فناوری / Tech Stack
+## Tech Stack
 
 **Core (Go)**
 - `golang.org/x/crypto` — SSH, TLS, AEAD primitives
@@ -372,7 +310,7 @@ All `/v1/` routes require `Authorization: Bearer {apiKey}`.
 
 ---
 
-## ساختار پروژه / Project Structure
+## Project Structure
 
 ```
 go/
