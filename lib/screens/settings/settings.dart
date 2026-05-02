@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_defaults.dart';
@@ -112,8 +114,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _infoTile('Version', '0.0.1'),
             const SizedBox(height: 8),
             _infoTile('Protocol', 'SlipNet DNS Tunnel'),
+            const SizedBox(height: 28),
+
+            // ── Support ──
+            _sectionHeader('Support'),
+            const SizedBox(height: 10),
+            _actionTile(
+              icon: CupertinoIcons.bitcoin,
+              title: 'Bitcoin (BTC)',
+              subtitle: 'bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx',
+              onTap: () => _showDonationDialog(
+                'Bitcoin (BTC)',
+                'bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx',
+                'bitcoin:bc1qq7hxnfvr0gn7cfd5h8dskgk0mhrmuleqnmgylx',
+              ),
+            ),
             const SizedBox(height: 8),
-            _infoTile('Engine', 'vayDNS + SSH'),
+            _actionTile(
+              icon: CupertinoIcons.money_dollar_circle,
+              title: 'Tether (USDT — TRC20)',
+              subtitle: 'TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW',
+              onTap: () => _showDonationDialog(
+                'Tether (USDT — TRC20)',
+                'TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW',
+                'TQTpqyqXsaTM57xoHV3mTsFU3vntZGtxFW',
+              ),
+            ),
           ],
         ),
       ),
@@ -351,6 +377,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               // TODO clear storage
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDonationDialog(String title, String address, String qrData) {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: Text(title),
+        content: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                size: 150,
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              address,
+              style: const TextStyle(
+                fontSize: 12,
+                fontFamily: 'SF Mono',
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Copy'),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: address));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Address copied to clipboard')),
+              );
+            },
+          ),
+          CupertinoDialogAction(
+            child: const Text('Close'),
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
