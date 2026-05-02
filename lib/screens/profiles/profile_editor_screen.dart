@@ -590,7 +590,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'This profile is locked. Only DNS settings can be changed.',
+                  'This profile is locked. Only DNS, SSH, and SOCKS settings can be changed.',
                   style:
                       TextStyle(fontSize: 13, color: AppColors.textSecondary),
                 ),

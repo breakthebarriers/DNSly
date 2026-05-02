@@ -13,12 +13,29 @@ class ImportDialog extends StatefulWidget {
 
 class _ImportDialogState extends State<ImportDialog> {
   final _ctrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   String? _error;
+  bool _hasEncrypted = false;
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
+  }
+
+  void _onUriChanged() {
+    final text = _ctrl.text.trim();
+    final hasEncrypted = text.contains('slipnet-enc://');
+    if (hasEncrypted != _hasEncrypted) {
+      setState(() => _hasEncrypted = hasEncrypted);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.addListener(_onUriChanged);
   }
 
   @override
@@ -47,6 +64,22 @@ class _ImportDialogState extends State<ImportDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
+          if (_hasEncrypted) ...[
+            const SizedBox(height: 12),
+            CupertinoTextField(
+              controller: _passwordCtrl,
+              placeholder: 'Password for encrypted profiles',
+              placeholderStyle:
+                  const TextStyle(fontSize: 11, color: AppColors.dim),
+              style: const TextStyle(fontSize: 12, color: AppColors.text),
+              obscureText: true,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: 8),
             Text(_error!,
@@ -64,6 +97,7 @@ class _ImportDialogState extends State<ImportDialog> {
           child: const Text('Import'),
           onPressed: () {
             final rawInput = _ctrl.text.trim();
+            final password = _passwordCtrl.text.trim();
             final items = rawInput
                 .split(RegExp(r'[\n\s]+'))
                 .map((e) => e.trim())
@@ -88,10 +122,19 @@ class _ImportDialogState extends State<ImportDialog> {
               return;
             }
 
+            final hasEncrypted = items.any((e) => e.startsWith('slipnet-enc://'));
+            if (hasEncrypted && password.isEmpty) {
+              setState(() => _error = 'Password required for encrypted profiles');
+              return;
+            }
+
             final bloc = context.read<ProfileBloc>();
             for (final item in items) {
-              // Encrypted links are imported as locked profiles (no password required).
-              bloc.add(ProfileImported(item));
+              if (item.startsWith('slipnet-enc://')) {
+                bloc.add(ProfileImportedEncrypted(item, password));
+              } else {
+                bloc.add(ProfileImported(item));
+              }
             }
             Navigator.pop(context);
           },
